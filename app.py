@@ -1,4 +1,15 @@
-from flask_sqlalchemy import SQLAlchemy
+from flask import Flask
+from models import db
 
-db = SQLAlchemy()
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
+db.init_app(app)   
 
+@app.route("/")
+def home():
+    return "Hello world"
+
+with app.app_context():
+    db.create_all()
+
+app.run(host="localhost", port="8080")
