@@ -6,11 +6,17 @@ class Rol(db.Model):
     __tablename__ = 'rol'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False)
+    user = db.relationship("User")
+    pet = db.relationship("Pet")
+    post = db.relationship("Post")
     
     def serialize(self):
         return {
             "id" : self.id,  
-            "name" : self.name, 
+            "name" : self.name,
+            "user" : self.user,
+            "pet" : self.pet,
+            "post" : self.post
         }
 
 class User(db.Model):
@@ -56,8 +62,8 @@ class Favorites(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False)
     pet_id = db.Column(db.Integer, nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     image = db.Column(db.LargeBinary, nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     
     def serialize(self):
         return {
@@ -75,11 +81,11 @@ class Pet(db.Model):
     description = db.Column(db.String(500), nullable=False)
     species = db.Column(db.String(50), nullable=False)
     size = db.Column(db.String(50), nullable=False)
-    image = db.Column(db.LargeBinary, nullable=True)
     medical_history = db.Column(db.String(500), nullable=False)
     is_adopted = db.Column(db.Boolean, unique=False, default=False)
+    image = db.Column(db.LargeBinary, nullable=True)
     adress_id = db.Column(db.String(500), nullable=False)
-    user_id = db.Column(db.Integer,  nullable=False)
+    rol_id = db.Column(db.Integer,  nullable=False)
     
     def serialize(self):
         return {
@@ -93,21 +99,23 @@ class Pet(db.Model):
             "medical_history" : self.medical_history,
             "is_adopted" : self.is_adopted,
             "adress_id" :  self.adress_id,
-            "user_id" : self.user_id
+            "rol_id" : self.rol_id
         }
 
 class Post(db.Model):
     __tablename__ = 'post'
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(50), nullable=False)
-    image = db.Column(db.LargeBinary, nullable=True)
     description = db.Column(db.String(500), nullable=False)
+    image = db.Column(db.LargeBinary, nullable=True)
+    rol_id = db.Column(db.Integer,  nullable=False)
 
 def serialize(self):
         return {
             "id" : self.id,  
             "title" : self.title,
-            "description": self.description
+            "description": self.description,
+            "rol_id": self.rol_id
             
         }
     
@@ -115,6 +123,7 @@ class Adress(db.Model):
     __tablename__ = 'adress'
     id = db.Column(db.Integer, primary_key=True)
     commune = db.Column(db.String(50), nullable=False)
+    pet_id = db.Column(db.Integer,  nullable=False)
 
 def serialize(self):
         return {
@@ -123,3 +132,4 @@ def serialize(self):
             "description": self.description
             
         }
+        

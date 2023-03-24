@@ -9,6 +9,7 @@ db.init_app(app)
 def home():
     return "Hello world"
 
+
 with app.app_context():
     db.create_all()
 
