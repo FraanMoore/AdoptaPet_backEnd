@@ -6,30 +6,33 @@ class Rol(db.Model):
     __tablename__ = 'rol'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False)
-    user = db.relationship("User")
-    pet = db.relationship("Pet")
-    post = db.relationship("Post")
+    users = db.relationship("User", back_populates="rol", overlaps="user")
+    pets = db.relationship("Pet")
+    posts = db.relationship("Post")
     
     def serialize(self):
         return {
             "id" : self.id,  
             "name" : self.name,
-            "user" : self.user,
-            "pet" : self.pet,
-            "post" : self.post
+            "users" : [user.serialize() for user in self.users],
+            "pets" : [pet.serialize() for pet in self.pets],
+            "posts" : [post.serialize() for post in self.posts]
         }
+
 
 class User(db.Model):
     __tablename__ = 'user'
-    id = db.Column(db.Integer, nullable=False)
+    id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False)
     last_name = db.Column(db.String(50), nullable=False)
-    email = db.Column(db.String(50), primary_key=True)
+    email = db.Column(db.String(50), unique=True, nullable=False)
     phone = db.Column(db.Integer, nullable=False)
     password = db.Column(db.String(100), nullable=False)
-    rol_id = db.Column(db.Integer, nullable=False)
+    rol_id = db.Column(db.Integer, db.ForeignKey('rol.id'), nullable=False)
     favorites = db.relationship("Favorites")
     
+    rol = db.relationship("Rol", back_populates="users", overlaps="user")
+
     def serialize(self):
         return {
             "id": self.id,
@@ -37,8 +40,11 @@ class User(db.Model):
             "last_name": self.last_name,
             "email": self.email,
             "phone": self.phone,
-            "rol_id": self.rol_id
+            "rol_id": self.rol_id,
+            "rol": self.rol.serialize()
         }
+
+
         
 class User_description(db.Model):
     __tablename__ = 'user description'
@@ -85,7 +91,7 @@ class Pet(db.Model):
     is_adopted = db.Column(db.Boolean, unique=False, default=False)
     image = db.Column(db.LargeBinary, nullable=True)
     adress_id = db.Column(db.String(500), nullable=False)
-    rol_id = db.Column(db.Integer,  nullable=False)
+    rol_id = db.Column(db.Integer, db.ForeignKey('rol.id'))
     
     def serialize(self):
         return {
@@ -108,7 +114,7 @@ class Post(db.Model):
     title = db.Column(db.String(50), nullable=False)
     description = db.Column(db.String(500), nullable=False)
     image = db.Column(db.LargeBinary, nullable=True)
-    rol_id = db.Column(db.Integer,  nullable=False)
+    rol_id = db.Column(db.Integer, db.ForeignKey('rol.id'))
 
 def serialize(self):
         return {
@@ -133,3 +139,103 @@ def serialize(self):
             
         }
         
+class Form(db.Model):
+    __tablename__ = 'form'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    query1 = db.Column(db.String(500), nullable=False)
+    query2 = db.Column(db.String(500), nullable=False)
+    query3 = db.Column(db.String(500), nullable=False)
+    query4 = db.Column(db.String(500), nullable=False)
+    query5 = db.Column(db.Boolean, unique=False, default=False)
+    query6 = db.Column(db.Boolean, unique=False, default=False)
+    query7 = db.Column(db.String(500), nullable=False)
+    query8 = db.Column(db.String(500), nullable=False)
+    query9 = db.Column(db.String(500), nullable=False)
+    query10 = db.Column(db.String(500), nullable=False)
+    query11 = db.Column(db.String(500), nullable=False)
+    query12 = db.Column(db.String(500), nullable=False)
+    query13 = db.Column(db.String(500), nullable=False)
+    query14 = db.Column(db.Integer, nullable=False)
+    query15 = db.Column(db.Boolean, unique=False, default=False)
+    query16 = db.Column(db.String(500), nullable=False)
+    query17 = db.Column(db.Boolean, unique=False, default=False)
+    query18 = db.Column(db.String(500), nullable=False)
+    query19 = db.Column(db.Boolean, unique=False, default=False)
+    query20 = db.Column(db.String(500), nullable=False)
+    query21 = db.Column(db.Boolean, unique=False, default=False)
+    query22 = db.Column(db.Boolean, unique=False, default=False)
+    query23 = db.Column(db.Boolean, unique=False, default=False)
+    query24 = db.Column(db.String(500), nullable=False)
+    query25 = db.Column(db.String(500), nullable=False)
+    query26 = db.Column(db.Boolean, unique=False, default=False)
+    query27 = db.Column(db.Boolean, unique=False, default=False)
+    query28 = db.Column(db.Boolean, unique=False, default=False)
+    query29 = db.Column(db.String(500), nullable=False)
+    query30 = db.Column(db.String(500), nullable=False)
+    query31 = db.Column(db.String(500), nullable=False)
+    query32 = db.Column(db.String(500), nullable=False)
+    query33 = db.Column(db.String(500), nullable=False)
+    query34 = db.Column(db.String(500), nullable=False)
+    query35 = db.Column(db.String(500), nullable=False)
+    query36 = db.Column(db.Boolean, unique=False, default=False)
+    query37 = db.Column(db.Boolean, unique=False, default=False)
+    query38 = db.Column(db.String(500), nullable=False)
+    query39 = db.Column(db.String(500), nullable=False)
+    query40 = db.Column(db.String(500), nullable=False)
+    query41 = db.Column(db.String(500), nullable=False)
+    query42 = db.Column(db.Boolean, unique=False, default=False)
+    query43 = db.Column(db.Boolean, unique=False, default=False)
+    query44 = db.Column(db.String(500), nullable=False)
+    
+def serialize(self):
+        return {
+            "id" : self.id,
+            "user_id" : self.user_id,
+            "query1" : self.query1,
+            "query2" : self.query2,
+            "query3" : self.query3,
+            "query4" : self.query4,
+            "query5" : self.query5,
+            "query6" : self.query6,
+            "query7" : self.query7,
+            "query8" : self.query8,
+            "query9" : self.query9,
+            "query10" : self.query10,
+            "query11" : self.query11,
+            "query12" : self.query12,
+            "query13" : self.query13,
+            "query14" : self.query14,
+            "query15" : self.query15,
+            "query16" : self.query16,
+            "query17" : self.query17,
+            "query18" : self.query18,
+            "query19" : self.query19,
+            "query20" : self.query20,
+            "query21" : self.query21,
+            "query22" : self.query22,
+            "query23" : self.query23,
+            "query24" : self.query24,
+            "query25" : self.query25,
+            "query26" : self.query26,
+            "query27" : self.query27,
+            "query28" : self.query28,
+            "query29" : self.query29,
+            "query30" : self.query30,
+            "query31" : self.query31,
+            "query32" : self.query32,
+            "query33" : self.query33,
+            "query34" : self.query34,
+            "query35" : self.query35,
+            "query36" : self.query36,
+            "query37" : self.query37,
+            "query38" : self.query38,
+            "query39" : self.query39,
+            "query40" : self.query40,
+            "query41" : self.query41,
+            "query42" : self.query42,
+            "query43" : self.query43,
+            "query44" : self.query44
+    
+            
+        }
