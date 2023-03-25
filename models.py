@@ -40,14 +40,13 @@ class User(db.Model):
             "last_name": self.last_name,
             "email": self.email,
             "phone": self.phone,
-            "rol_id": self.rol_id,
-            "rol": self.rol.serialize()
+            "rol_id": self.rol_id
         }
 
 
         
 class User_description(db.Model):
-    __tablename__ = 'user description'
+    __tablename__ = 'description'
     id = db.Column(db.Integer, primary_key=True)
     description = db.Column(db.String(500), nullable=False)
     motivation = db.Column(db.String(500), nullable=False)
@@ -63,20 +62,6 @@ class User_description(db.Model):
             "user_id" :  self.user_id
         }
     
-class Favorites(db.Model):
-    __tablename__ = 'favorites'
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), nullable=False)
-    pet_id = db.Column(db.Integer, nullable=False)
-    image = db.Column(db.LargeBinary, nullable=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    
-    def serialize(self):
-        return {
-            "id": self.id,
-            "name": self.name,
-            "pet_id" : self.pet_id
-        }
         
 class Pet(db.Model):
     __tablename__ = 'pet'
@@ -89,7 +74,6 @@ class Pet(db.Model):
     size = db.Column(db.String(50), nullable=False)
     medical_history = db.Column(db.String(500), nullable=False)
     is_adopted = db.Column(db.Boolean, unique=False, default=False)
-    image = db.Column(db.LargeBinary, nullable=True)
     adress_id = db.Column(db.String(500), nullable=False)
     rol_id = db.Column(db.Integer, db.ForeignKey('rol.id'))
     
@@ -108,15 +92,27 @@ class Pet(db.Model):
             "rol_id" : self.rol_id
         }
 
+class Favorites(db.Model):
+    __tablename__ = 'favorites'
+    id = db.Column(db.Integer, primary_key=True)
+    pet_id = db.Column(db.Integer, db.ForeignKey('pet.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    
+    def serialize(self):
+        return {
+            "id": self.id,
+            "pet_id" : self.pet_id,
+            "user_id" : self.user_id
+        }
+        
 class Post(db.Model):
     __tablename__ = 'post'
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(50), nullable=False)
     description = db.Column(db.String(500), nullable=False)
-    image = db.Column(db.LargeBinary, nullable=True)
     rol_id = db.Column(db.Integer, db.ForeignKey('rol.id'))
 
-def serialize(self):
+    def serialize(self):
         return {
             "id" : self.id,  
             "title" : self.title,
@@ -131,7 +127,7 @@ class Adress(db.Model):
     commune = db.Column(db.String(50), nullable=False)
     pet_id = db.Column(db.Integer,  nullable=False)
 
-def serialize(self):
+    def serialize(self):
         return {
             "id" : self.id,  
             "title" : self.title,
@@ -188,7 +184,7 @@ class Form(db.Model):
     query43 = db.Column(db.Boolean, unique=False, default=False)
     query44 = db.Column(db.String(500), nullable=False)
     
-def serialize(self):
+    def serialize(self):
         return {
             "id" : self.id,
             "user_id" : self.user_id,
