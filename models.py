@@ -130,8 +130,8 @@ class Adress(db.Model):
     def serialize(self):
         return {
             "id" : self.id,  
-            "title" : self.title,
-            "description": self.description
+            "commune" : self.commune,
+            "pet_id": self.pet_id
             
         }
         

@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from models import db , Rol, User, User_description, Pet, Favorites, Post
+from models import db , Rol, User, User_description, Pet, Favorites, Post, Adress, Form
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
@@ -336,17 +336,210 @@ def get_posts():
         result.append(post.serialize())
     return jsonify(result)
 
+#PUT & DELETE
 
+@app.route("/posts/<int:id>", methods=["PUT", "DELETE"])
+def update_posts(id):
+    post =  Post.query.get(id)
+    if post is not None:
+        if request.method == "DELETE":
+            db.session.delete(post)
+            db.session.commit()
+            
+            return "Publicación eliminada", 204
+        else:    
+            post.title = request.json.get("title")
+            post.description = request.json.get("description")
+            post.rol_id = request.json.get("rol_id")
+            
+        
+            db.session.commit()
+        
+            return jsonify("Publicación actualizada"), 200
+    
+    return jsonify("Publicación no encontrada"), 404
 
+#ADRESS
 
+#POST
 
+@app.route("/adress", methods=["POST"])
+def create_adress():
+    adress = Adress()
+    adress.commune = request.json.get("commune")
+    adress.pet_id = request.json.get("pet_id")
 
+    
+    db.session.add(adress)
+    db.session.commit()
 
+    return "Dirección guardada", 201
+    
+#GET
 
+@app.route("/adress/list", methods=["GET"])
+def get_adress():
+    adress = Adress.query.all()
+    result = []
+    for adress in adress:
+        result.append(adress.serialize())
+    return jsonify(result)
 
+#PUT & DELETE
 
+@app.route("/adress/<int:id>", methods=["PUT", "DELETE"])
+def update_adress(id):
+    adress =  Adress.query.get(id)
+    if adress is not None:
+        if request.method == "DELETE":
+            db.session.delete(adress)
+            db.session.commit()
+            
+            return "Publicación eliminada", 204
+        else:    
+            adress.commune = request.json.get("commune")
+            adress.pet_id = request.json.get("pet_id")
+            
+        
+            db.session.commit()
+        
+            return jsonify("Ubicación actualizada"), 200
+    
+    return jsonify("Ubicación no encontrada"), 404
 
+#FORM
 
+#POST
+
+@app.route("/form", methods=["POST"])
+def create_form():
+    form = Form()
+    form.user_id = request.json.get("user_id")
+    form.query1 = request.json.get("query1")
+    form.query2 = request.json.get("query2")
+    form.query3 = request.json.get("query3")
+    form.query4 = request.json.get("query4")
+    form.query5 = request.json.get("query5")
+    form.query6 = request.json.get("query6")
+    form.query7 = request.json.get("query7")
+    form.query8 = request.json.get("query8")
+    form.query9 = request.json.get("query9")
+    form.query10 = request.json.get("query10")
+    form.query11 = request.json.get("query11")
+    form.query12 = request.json.get("query12")
+    form.query13 = request.json.get("query13")
+    form.query14 = request.json.get("query14")
+    form.query15 = request.json.get("query15")
+    form.query16 = request.json.get("query16")
+    form.query17 = request.json.get("query17")
+    form.query18 = request.json.get("query18")
+    form.query19 = request.json.get("query19")
+    form.query20 = request.json.get("query20")
+    form.query21 = request.json.get("query21")
+    form.query22 = request.json.get("query22")
+    form.query23 = request.json.get("query23")
+    form.query24 = request.json.get("query24")
+    form.query25 = request.json.get("query25")
+    form.query26 = request.json.get("query26")
+    form.query27 = request.json.get("query27")
+    form.query28 = request.json.get("query28")
+    form.query29 = request.json.get("query29")
+    form.query30 = request.json.get("query30")
+    form.query31 = request.json.get("query31")
+    form.query32 = request.json.get("query32")
+    form.query33 = request.json.get("query33")
+    form.query34 = request.json.get("query34")
+    form.query35 = request.json.get("query35")
+    form.query36 = request.json.get("query36")
+    form.query37 = request.json.get("query37")
+    form.query38 = request.json.get("query38")
+    form.query39 = request.json.get("query39")
+    form.query40 = request.json.get("query40")
+    form.query41 = request.json.get("query41")
+    form.query42 = request.json.get("query42")
+    form.query43 = request.json.get("query43")
+    form.query44 = request.json.get("query44")
+
+    
+    db.session.add(form)
+    db.session.commit()
+
+    return "Formulario guardado", 201
+
+#GET
+
+@app.route("/form/list", methods=["GET"])
+def get_form():
+    form = Form.query.all()
+    result = []
+    for form in form:
+        result.append(form.serialize())
+    return jsonify(result)
+
+#PUT & DELETE
+
+@app.route("/form/<int:id>", methods=["PUT", "DELETE"])
+def update_form(id):
+    form =  Form.query.get(id)
+    if form is not None:
+        if request.method == "DELETE":
+            db.session.delete(form)
+            db.session.commit()
+            
+            return "Publicación eliminada", 204
+        else:    
+            form.user_id = request.json.get("user_id")
+            form.query1 = request.json.get("query1")
+            form.query2 = request.json.get("query2")
+            form.query3 = request.json.get("query3")
+            form.query4 = request.json.get("query4")
+            form.query5 = request.json.get("query5")
+            form.query6 = request.json.get("query6")
+            form.query7 = request.json.get("query7")
+            form.query8 = request.json.get("query8")
+            form.query9 = request.json.get("query9")
+            form.query10 = request.json.get("query10")
+            form.query11 = request.json.get("query11")
+            form.query12 = request.json.get("query12")
+            form.query13 = request.json.get("query13")
+            form.query14 = request.json.get("query14")
+            form.query15 = request.json.get("query15")
+            form.query16 = request.json.get("query16")
+            form.query17 = request.json.get("query17")
+            form.query18 = request.json.get("query18")
+            form.query19 = request.json.get("query19")
+            form.query20 = request.json.get("query20")
+            form.query21 = request.json.get("query21")
+            form.query22 = request.json.get("query22")
+            form.query23 = request.json.get("query23")
+            form.query24 = request.json.get("query24")
+            form.query25 = request.json.get("query25")
+            form.query26 = request.json.get("query26")
+            form.query27 = request.json.get("query27")
+            form.query28 = request.json.get("query28")
+            form.query29 = request.json.get("query29")
+            form.query30 = request.json.get("query30")
+            form.query31 = request.json.get("query31")
+            form.query32 = request.json.get("query32")
+            form.query33 = request.json.get("query33")
+            form.query34 = request.json.get("query34")
+            form.query35 = request.json.get("query35")
+            form.query36 = request.json.get("query36")
+            form.query37 = request.json.get("query37")
+            form.query38 = request.json.get("query38")
+            form.query39 = request.json.get("query39")
+            form.query40 = request.json.get("query40")
+            form.query41 = request.json.get("query41")
+            form.query42 = request.json.get("query42")
+            form.query43 = request.json.get("query43")
+            form.query44 = request.json.get("query44")
+            
+        
+            db.session.commit()
+        
+            return jsonify("Formulario actualizado"), 200
+    
+    return jsonify("Formulario no encontrado"), 404
 
 
 
