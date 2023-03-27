@@ -42,16 +42,14 @@ def update_rol(id):
         if request.method == "DELETE":
             db.session.delete(rol)
             db.session.commit()
-            
-            return "Usuario eliminado", 204
-        else:    
-            rol.name = request.json.get("name")
-        
+            return jsonify("Usuario eliminado"), 204
+        else:
+            if 'name' in request.json:
+                rol.name = request.json.get("name")
             db.session.commit()
-        
             return jsonify("Usuario actualizado"), 200
-    
     return jsonify("Usuario no encontrado"), 404
+
 
 #USER
 
@@ -101,19 +99,22 @@ def update_user(id):
         if request.method == "DELETE":
             db.session.delete(user)
             db.session.commit()
-            
             return jsonify("Eliminado"), 204
         else:
-            user.name = request.json.get("name")
-            user.last_name = request.json.get("last_name")
-            user.password = request.json.get("password")
-            user.email = request.json.get("email")
-        
+            if 'name' in request.json:
+                user.name = request.json.get("name")
+            if 'last_name' in request.json:
+                user.last_name = request.json.get("last_name")
+            if 'password' in request.json:
+                user.password = request.json.get("password")
+            if 'email' in request.json:
+                user.email = request.json.get("email")
+            if 'rol_id' in request.json:
+                user.rol_id = request.json.get("rol_id")
             db.session.commit()
-        
             return jsonify("Usuario actualizado"), 200
-    
     return jsonify("Usuario no encontrado"), 404
+
 
 #USER_DESCRIPTION
 
@@ -177,19 +178,23 @@ def update_description(id):
         if request.method == "DELETE":
             db.session.delete(user_description)
             db.session.commit()
-            
             return "Description eliminada", 204
-        else:    
-            user_description.description = request.json.get("description")
-            user_description.motivation = request.json.get("motivation")
-            user_description.style = request.json.get("style")
-            user_description.user_id = request.json.get("user_id")
-        
+        else:
+            if "description" in request.json:
+                user_description.description = request.json["description"]
+            if "motivation" in request.json:
+                user_description.motivation = request.json["motivation"]
+            if "style" in request.json:
+                user_description.style = request.json["style"]
+            if "user_id" in request.json:
+                user_description.user_id = request.json["user_id"]
+            
             db.session.commit()
         
             return jsonify("Descripción actualizada"), 200
     
     return jsonify("Descripción no encontrada"), 404
+
     
 #PET
 
@@ -228,30 +233,40 @@ def get_pets():
 
 @app.route("/pet/<int:id>", methods=["PUT", "DELETE"])
 def update_pet(id):
-    pet =  Pet.query.get(id)
+    pet = Pet.query.get(id)
     if pet is not None:
         if request.method == "DELETE":
             db.session.delete(pet)
             db.session.commit()
-            
             return "Mascota eliminada", 204
-        else:    
-            pet.name = request.json.get("name")
-            pet.gender = request.json.get("gender")
-            pet.age = request.json.get("age")
-            pet.description = request.json.get("description")
-            pet.species = request.json.get("species")
-            pet.size = request.json.get("size")
-            pet.medical_history = request.json.get("medical_history")
-            pet.is_adopted = request.json.get("is_adopted")
-            pet.adress_id = request.json.get("adress_id")
-            pet.rol_id = request.json.get("rol_id")
-        
+        else:
+            if "name" in request.json:
+                pet.name = request.json["name"]
+            if "gender" in request.json:
+                pet.gender = request.json["gender"]
+            if "age" in request.json:
+                pet.age = request.json["age"]
+            if "description" in request.json:
+                pet.description = request.json["description"]
+            if "species" in request.json:
+                pet.species = request.json["species"]
+            if "size" in request.json:
+                pet.size = request.json["size"]
+            if "medical_history" in request.json:
+                pet.medical_history = request.json["medical_history"]
+            if "is_adopted" in request.json:
+                pet.is_adopted = request.json["is_adopted"]
+            if "adress_id" in request.json:
+                pet.adress_id = request.json["adress_id"]
+            if "rol_id" in request.json:
+                pet.rol_id = request.json["rol_id"]
+            
             db.session.commit()
         
             return jsonify("Mascota actualizada"), 200
     
     return jsonify("Mascota no encontrada"), 404
+
 
 #FAVORITES
 
@@ -292,16 +307,18 @@ def get_favorite_user(user_id):
 
 @app.route("/favorites/<int:id>", methods=["PUT", "DELETE"])
 def update_favorites(id):
-    favorite =  Favorites.query.get(id)
+    favorite = Favorites.query.get(id)
     if favorite is not None:
         if request.method == "DELETE":
             db.session.delete(favorite)
             db.session.commit()
             
-            return "Mascota eliminada", 204
+            return "Favorito eliminado", 204
         else:    
-            favorite.pet_id = request.json.get("pet_id")
-            favorite.user_id = request.json.get("user_id")
+            if "pet_id" in request.json:
+                favorite.pet_id = request.json.get("pet_id")
+            if "user_id" in request.json:
+                favorite.user_id = request.json.get("user_id")
             
         
             db.session.commit()
@@ -309,6 +326,7 @@ def update_favorites(id):
             return jsonify("Favoritos actualizados"), 200
     
     return jsonify("Favoritos no encontrados"), 404
+
 
 #POST
 
@@ -340,24 +358,30 @@ def get_posts():
 
 @app.route("/posts/<int:id>", methods=["PUT", "DELETE"])
 def update_posts(id):
-    post =  Post.query.get(id)
+    post = Post.query.get(id)
     if post is not None:
         if request.method == "DELETE":
             db.session.delete(post)
             db.session.commit()
             
             return "Publicación eliminada", 204
-        else:    
-            post.title = request.json.get("title")
-            post.description = request.json.get("description")
-            post.rol_id = request.json.get("rol_id")
+        else:
+            title = request.json.get("title")
+            if title is not None:
+                post.title = title
+            description = request.json.get("description")
+            if description is not None:
+                post.description = description
+            rol_id = request.json.get("rol_id")
+            if rol_id is not None:
+                post.rol_id = rol_id
             
-        
             db.session.commit()
         
             return jsonify("Publicación actualizada"), 200
     
     return jsonify("Publicación no encontrada"), 404
+
 
 #ADRESS
 
@@ -395,17 +419,21 @@ def update_adress(id):
             db.session.delete(adress)
             db.session.commit()
             
-            return "Publicación eliminada", 204
+            return "Ubicación eliminada", 204
         else:    
-            adress.commune = request.json.get("commune")
-            adress.pet_id = request.json.get("pet_id")
-            
+            commune = request.json.get("commune")
+            pet_id = request.json.get("pet_id")
+            if commune is not None:
+                adress.commune = commune
+            if pet_id is not None:
+                adress.pet_id = pet_id
         
             db.session.commit()
         
             return jsonify("Ubicación actualizada"), 200
     
     return jsonify("Ubicación no encontrada"), 404
+
 
 #FORM
 
