@@ -1,9 +1,19 @@
 from flask import Flask, request, jsonify
 from models import db , Rol, User, User_description, Pet, Favorites, Post, Adress, Form
+from flask_migrate import Migrate
+from flask_bcrypt import Bcrypt, generate_password_hash, check_password_hash
+from flask_jwt_extended import JWTManager, jwt_required, create_access_token, get_jwt_identity
+from flask_cors  import CORS
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
+app.config['JWT_SECRET_KEY'] = "super-secreta"
 db.init_app(app)   
+
+migrate = Migrate(app, db)
+jwt = JWTManager(app)
+bcrypt = Bcrypt(app)
+CORS(app)
 
 @app.route("/")
 def home():
@@ -64,6 +74,8 @@ def create_user():
     phone = request.json.get("phone")
     rol_id = request.json.get("rol_id")
     password = request.json.get("password")
+    password_hash = generate_password_hash(password)
+    password = password_hash
 
     # Verifica si el correo ya existe en la base de datos
     existing_user = User.query.filter_by(email=email).first()
@@ -79,6 +91,30 @@ def create_user():
 
     # Devuelve una respuesta con código de estado HTTP 201
     return "Usuario guardado", 201
+
+#LOGIN
+
+@app.route("/login", methods=["POST"])
+def login():
+    email = request.json.get("email")
+    password = request.json.get("password")
+    user = User.query.filter_by(email=email).first()
+    if user is not None:
+        is_valid = check_password_hash(user.password, password)
+        if is_valid:
+            access_token = create_access_token(identity=email)
+            return jsonify({
+                "token": access_token
+            }), 200
+        else:
+            return jsonify({
+                "msg": "La contraseña es incorrecta"
+            }), 400
+    else:
+        return jsonify({
+            "msg": "El usuario no existe o la información es inválida"
+        }), 400
+
 
 # GET
 
@@ -222,6 +258,7 @@ def create_pet():
 #GET
 
 @app.route("/pets/list", methods=["GET"])
+@jwt_required()
 def get_pets():
     pets = Pet.query.all()
     result = []
@@ -598,10 +635,8 @@ def update_form(id):
 
 
 
-with app.app_context():
-    db.create_all()
-    
+
     
 
-
-app.run(host="localhost", port="8080")
+if __name__ == "__main__":
+    app.run(host="localhost", port="8080")

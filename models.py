@@ -42,9 +42,7 @@ class User(db.Model):
             "phone": self.phone,
             "rol_id": self.rol_id
         }
-
-
-        
+      
 class User_description(db.Model):
     __tablename__ = 'description'
     id = db.Column(db.Integer, primary_key=True)
@@ -61,8 +59,7 @@ class User_description(db.Model):
             "style" : self.style,
             "user_id" :  self.user_id
         }
-    
-        
+           
 class Pet(db.Model):
     __tablename__ = 'pet'
     id = db.Column(db.Integer, primary_key=True)
