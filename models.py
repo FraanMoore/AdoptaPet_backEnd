@@ -40,14 +40,11 @@ class User(db.Model):
             "last_name": self.last_name,
             "email": self.email,
             "phone": self.phone,
-            "rol_id": self.rol_id,
-            "rol": self.rol.serialize()
+            "rol_id": self.rol_id
         }
-
-
-        
+      
 class User_description(db.Model):
-    __tablename__ = 'user description'
+    __tablename__ = 'description'
     id = db.Column(db.Integer, primary_key=True)
     description = db.Column(db.String(500), nullable=False)
     motivation = db.Column(db.String(500), nullable=False)
@@ -62,34 +59,18 @@ class User_description(db.Model):
             "style" : self.style,
             "user_id" :  self.user_id
         }
-    
-class Favorites(db.Model):
-    __tablename__ = 'favorites'
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), nullable=False)
-    pet_id = db.Column(db.Integer, nullable=False)
-    image = db.Column(db.LargeBinary, nullable=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    
-    def serialize(self):
-        return {
-            "id": self.id,
-            "name": self.name,
-            "pet_id" : self.pet_id
-        }
-        
+           
 class Pet(db.Model):
     __tablename__ = 'pet'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False)
     gender = db.Column(db.String(50), nullable=False)
-    age = db.Column(db.Integer, nullable=False)
+    age = db.Column(db.String(50), nullable=False)
     description = db.Column(db.String(500), nullable=False)
     species = db.Column(db.String(50), nullable=False)
     size = db.Column(db.String(50), nullable=False)
     medical_history = db.Column(db.String(500), nullable=False)
     is_adopted = db.Column(db.Boolean, unique=False, default=False)
-    image = db.Column(db.LargeBinary, nullable=True)
     adress_id = db.Column(db.String(500), nullable=False)
     rol_id = db.Column(db.Integer, db.ForeignKey('rol.id'))
     
@@ -108,15 +89,27 @@ class Pet(db.Model):
             "rol_id" : self.rol_id
         }
 
+class Favorites(db.Model):
+    __tablename__ = 'favorites'
+    id = db.Column(db.Integer, primary_key=True)
+    pet_id = db.Column(db.Integer, db.ForeignKey('pet.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    
+    def serialize(self):
+        return {
+            "id": self.id,
+            "pet_id" : self.pet_id,
+            "user_id" : self.user_id
+        }
+        
 class Post(db.Model):
     __tablename__ = 'post'
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(50), nullable=False)
     description = db.Column(db.String(500), nullable=False)
-    image = db.Column(db.LargeBinary, nullable=True)
     rol_id = db.Column(db.Integer, db.ForeignKey('rol.id'))
 
-def serialize(self):
+    def serialize(self):
         return {
             "id" : self.id,  
             "title" : self.title,
@@ -131,11 +124,11 @@ class Adress(db.Model):
     commune = db.Column(db.String(50), nullable=False)
     pet_id = db.Column(db.Integer,  nullable=False)
 
-def serialize(self):
+    def serialize(self):
         return {
             "id" : self.id,  
-            "title" : self.title,
-            "description": self.description
+            "commune" : self.commune,
+            "pet_id": self.pet_id
             
         }
         
@@ -147,8 +140,8 @@ class Form(db.Model):
     query2 = db.Column(db.String(500), nullable=False)
     query3 = db.Column(db.String(500), nullable=False)
     query4 = db.Column(db.String(500), nullable=False)
-    query5 = db.Column(db.Boolean, unique=False, default=False)
-    query6 = db.Column(db.Boolean, unique=False, default=False)
+    query5 = db.Column(db.String(500), nullable=False)
+    query6 = db.Column(db.String(500), nullable=False)
     query7 = db.Column(db.String(500), nullable=False)
     query8 = db.Column(db.String(500), nullable=False)
     query9 = db.Column(db.String(500), nullable=False)
@@ -156,23 +149,23 @@ class Form(db.Model):
     query11 = db.Column(db.String(500), nullable=False)
     query12 = db.Column(db.String(500), nullable=False)
     query13 = db.Column(db.String(500), nullable=False)
-    query14 = db.Column(db.Integer, nullable=False)
-    query15 = db.Column(db.Boolean, unique=False, default=False)
-    query16 = db.Column(db.String(500), nullable=False)
-    query17 = db.Column(db.Boolean, unique=False, default=False)
-    query18 = db.Column(db.String(500), nullable=False)
-    query19 = db.Column(db.Boolean, unique=False, default=False)
-    query20 = db.Column(db.String(500), nullable=False)
+    query14 = db.Column(db.String(500), nullable=False)
+    query15 = db.Column(db.String(500), nullable=False)
+    query16 = db.Column(db.Boolean, unique=False, default=False)
+    query17 = db.Column(db.String(500), nullable=False)
+    query18 = db.Column(db.Boolean, unique=False, default=False)
+    query19 = db.Column(db.String(500), nullable=False)
+    query20 = db.Column(db.Boolean, unique=False, default=False)
     query21 = db.Column(db.Boolean, unique=False, default=False)
     query22 = db.Column(db.Boolean, unique=False, default=False)
-    query23 = db.Column(db.Boolean, unique=False, default=False)
+    query23 = db.Column(db.String(500), nullable=False)
     query24 = db.Column(db.String(500), nullable=False)
     query25 = db.Column(db.String(500), nullable=False)
     query26 = db.Column(db.Boolean, unique=False, default=False)
     query27 = db.Column(db.Boolean, unique=False, default=False)
-    query28 = db.Column(db.Boolean, unique=False, default=False)
+    query28 = db.Column(db.String(500), nullable=False)
     query29 = db.Column(db.String(500), nullable=False)
-    query30 = db.Column(db.String(500), nullable=False)
+    query30 = db.Column(db.Boolean, unique=False, default=False)
     query31 = db.Column(db.String(500), nullable=False)
     query32 = db.Column(db.String(500), nullable=False)
     query33 = db.Column(db.String(500), nullable=False)
@@ -180,15 +173,15 @@ class Form(db.Model):
     query35 = db.Column(db.String(500), nullable=False)
     query36 = db.Column(db.Boolean, unique=False, default=False)
     query37 = db.Column(db.Boolean, unique=False, default=False)
-    query38 = db.Column(db.String(500), nullable=False)
+    query38 = db.Column(db.Boolean, unique=False, default=False)
     query39 = db.Column(db.String(500), nullable=False)
     query40 = db.Column(db.String(500), nullable=False)
     query41 = db.Column(db.String(500), nullable=False)
-    query42 = db.Column(db.Boolean, unique=False, default=False)
+    query42 = db.Column(db.String(500), nullable=False)
     query43 = db.Column(db.Boolean, unique=False, default=False)
-    query44 = db.Column(db.String(500), nullable=False)
+    query44 = db.Column(db.Boolean, unique=False, default=False)
     
-def serialize(self):
+    def serialize(self):
         return {
             "id" : self.id,
             "user_id" : self.user_id,
