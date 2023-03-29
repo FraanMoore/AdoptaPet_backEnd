@@ -90,7 +90,7 @@ def create_user():
     db.session.commit()
 
     # Devuelve una respuesta con código de estado HTTP 201
-    return "Usuario guardado", 201
+    return jsonify({'message': 'Usuario guardado'}), 201
 
 #LOGIN
 
@@ -104,7 +104,15 @@ def login():
         if is_valid:
             access_token = create_access_token(identity=email)
             return jsonify({
-                "token": access_token
+                "token": access_token,
+                "user_id": user.id,
+                "name": user.name,
+                "last_name": user.last_name,
+                "email": user.email,
+                "phone": user.phone,
+                "rol_id": user.rol_id,
+                
+                
             }), 200
         else:
             return jsonify({
@@ -112,7 +120,7 @@ def login():
             }), 400
     else:
         return jsonify({
-            "msg": "El usuario no existe o la información es inválida"
+            'message': 'El usuario no existe o la información es inválida'
         }), 400
 
 
@@ -156,8 +164,9 @@ def update_user(id):
 
 #POST
 
-@app.route("/users/<int:user_id>/description", methods=["POST"])
-def create_description(user_id):
+@app.route("/users/description/", methods=["POST"])
+@jwt_required()
+def create_description():
     user_description = User_description()
     user_description.description = request.json.get("description")
     user_description.motivation = request.json.get("motivation")
@@ -181,7 +190,8 @@ def get_description():
 
 # GET user with description
 
-@app.route("/users/description/list/<int:id>", methods=["GET"])
+@app.route("/users/description/<int:id>", methods=["GET"])
+@jwt_required()
 def get_user_with_description(id):
     user = User.query.filter_by(id=id).first()  # Obtener el usuario por su id
     if user is not None:
@@ -258,7 +268,6 @@ def create_pet():
 #GET
 
 @app.route("/pets/list", methods=["GET"])
-@jwt_required()
 def get_pets():
     pets = Pet.query.all()
     result = []
