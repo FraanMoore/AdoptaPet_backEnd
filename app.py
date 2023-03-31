@@ -263,7 +263,24 @@ def create_pet():
     db.session.add(pet)
     db.session.commit()
     
-    return "Mascota guardada", 201
+    return jsonify({'message': 'Pet guardada'}), 201
+
+
+@app.route('/pet/<int:id>', methods=['GET'])
+def get_planet_id(id):
+    pet = Pet.query.get(id)
+    if pet is not None:
+        return jsonify(pet.serialize())
+    else:
+        return jsonify('No se encontró el objeto People con el ID especificado')
+
+
+
+
+
+
+
+
 
 #GET
 
