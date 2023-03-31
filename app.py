@@ -106,12 +106,7 @@ def login():
             return jsonify({
                 "token": access_token,
                 "user_id": user.id,
-                "name": user.name,
-                "last_name": user.last_name,
-                "email": user.email,
-                "phone": user.phone,
-                "rol_id": user.rol_id,
-                
+                "rol_id": user.rol_id,             
                 
             }), 200
         else:
@@ -134,16 +129,30 @@ def get_users():
         result.append(user.serialize())
     return jsonify(result)
 
+#GET USER BY ID
+
+@app.route("/users/<int:user_id>", methods=["GET"])
+def get_user(user_id):
+    user = User.query.filter_by(id=user_id).first()
+    if user is not None:
+        return jsonify(user.serialize())
+    else:
+        return jsonify({"message": "Usuario no encontrado"}), 404
+
+
 #PUT & DELETE
 
 @app.route("/users/<int:id>", methods=["PUT", "DELETE"])
 def update_user(id):
     user = User.query.get(id)
     if user is not None:
-        if request.method == "DELETE":
+        if user is not None:
+            user_description = User_description.query.filter_by(user_id=id).first()
+            if user_description is not None:
+                db.session.delete(user_description)
             db.session.delete(user)
             db.session.commit()
-            return jsonify("Eliminado"), 204
+            return jsonify("Usuario y descripción eliminados"), 204
         else:
             if 'name' in request.json:
                 user.name = request.json.get("name")
@@ -173,10 +182,15 @@ def create_description():
     user_description.style = request.json.get("style")
     user_description.user_id = request.json.get("user_id")
     
+    existing_description = User_description.query.filter_by(user_id=request.json.get("user_id")).first()
+    if existing_description:
+        db.session.delete(existing_description)
+        db.session.commit()
+    
     db.session.add(user_description)
     db.session.commit()
     
-    return "Descrcripción guardada", 201
+    return jsonify("Descripción guardada"), 201
 
 #GET
 
@@ -224,7 +238,7 @@ def update_description(id):
         if request.method == "DELETE":
             db.session.delete(user_description)
             db.session.commit()
-            return "Description eliminada", 204
+            return jsonify("Description eliminada"), 204
         else:
             if "description" in request.json:
                 user_description.description = request.json["description"]
@@ -263,7 +277,7 @@ def create_pet():
     db.session.add(pet)
     db.session.commit()
     
-    return "Mascota guardada", 201
+    return jsonify("Mascota guardada"), 201
 
 #GET
 
@@ -284,7 +298,7 @@ def update_pet(id):
         if request.method == "DELETE":
             db.session.delete(pet)
             db.session.commit()
-            return "Mascota eliminada", 204
+            return jsonify("Mascota eliminada"), 204
         else:
             if "name" in request.json:
                 pet.name = request.json["name"]
@@ -327,7 +341,7 @@ def create_favorite():
     db.session.add(favorites)
     db.session.commit()
 
-    return "Favorito guardado", 201
+    return jsonify("Favorito guardado"), 201
 
 #GET
 
@@ -359,7 +373,7 @@ def update_favorites(id):
             db.session.delete(favorite)
             db.session.commit()
             
-            return "Favorito eliminado", 204
+            return jsonify("Favorito eliminado"), 204
         else:    
             if "pet_id" in request.json:
                 favorite.pet_id = request.json.get("pet_id")
@@ -388,7 +402,7 @@ def create_post():
     db.session.add(posts)
     db.session.commit()
 
-    return "Publicación guardada", 201
+    return jsonify("Publicación guardada"), 201
     
 #GET
 
@@ -410,7 +424,7 @@ def update_posts(id):
             db.session.delete(post)
             db.session.commit()
             
-            return "Publicación eliminada", 204
+            return jsonify("Publicación eliminada"), 204
         else:
             title = request.json.get("title")
             if title is not None:
@@ -443,7 +457,7 @@ def create_adress():
     db.session.add(adress)
     db.session.commit()
 
-    return "Dirección guardada", 201
+    return jsonify("Dirección guardada"), 201
     
 #GET
 
@@ -465,7 +479,7 @@ def update_adress(id):
             db.session.delete(adress)
             db.session.commit()
             
-            return "Ubicación eliminada", 204
+            return jsonify("Ubicación eliminada"), 204
         else:    
             commune = request.json.get("commune")
             pet_id = request.json.get("pet_id")
@@ -538,7 +552,7 @@ def create_form():
     db.session.add(form)
     db.session.commit()
 
-    return "Formulario guardado", 201
+    return jsonify("Formulario guardado"), 201
 
 #GET
 
@@ -560,7 +574,7 @@ def update_form(id):
             db.session.delete(form)
             db.session.commit()
             
-            return "Publicación eliminada", 204
+            return jsonify("Publicación eliminada"), 204
         else:    
             form.user_id = request.json.get("user_id")
             form.query1 = request.json.get("query1")
