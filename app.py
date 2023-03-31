@@ -279,6 +279,21 @@ def create_pet():
     
     return jsonify("Mascota guardada"), 201
 
+
+
+
+@app.route('/pet/<int:id>', methods=['GET'])
+def get_planet_id(id):
+    pet = Pet.query.get(id)
+    if pet is not None:
+        return jsonify(pet.serialize())
+    else:
+        return jsonify('No se encontró el objeto People con el ID especificado')
+
+
+
+
+
 #GET
 
 @app.route("/pets/list", methods=["GET"])
