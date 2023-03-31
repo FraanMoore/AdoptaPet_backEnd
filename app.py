@@ -111,7 +111,7 @@ def login():
             }), 200
         else:
             return jsonify({
-                "msg": "La contraseña es incorrecta"
+                'message': 'La contraseña es incorrecta'
             }), 400
     else:
         return jsonify({
