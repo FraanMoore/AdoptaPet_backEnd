@@ -54,8 +54,7 @@ def update_rol(id):
             db.session.commit()
             return jsonify("Usuario eliminado"), 204
         else:
-            if 'name' in request.json:
-                rol.name = request.json.get("name")
+            rol.name = request.json.get("name")
             db.session.commit()
             return jsonify("Usuario actualizado"), 200
     return jsonify("Usuario no encontrado"), 404
@@ -80,7 +79,7 @@ def create_user():
     # Verifica si el correo ya existe en la base de datos
     existing_user = User.query.filter_by(email=email).first()
     if existing_user:
-        return "El correo ya existe en la base de datos", 400
+        return jsonify("El correo ya existe en la base de datos"), 400
 
     # Crea un nuevo objeto User
     new_user = User(name=name, last_name=last_name, email=email, phone=phone, rol_id=rol_id, password=password)
@@ -90,7 +89,7 @@ def create_user():
     db.session.commit()
 
     # Devuelve una respuesta con código de estado HTTP 201
-    return jsonify({'message': 'Usuario guardado'}), 201
+    return jsonify("Usuario guardado"), 201
 
 #LOGIN
 
@@ -106,17 +105,14 @@ def login():
             return jsonify({
                 "token": access_token,
                 "user_id": user.id,
-                "rol_id": user.rol_id,             
+                "rol_id": user.rol_id, 
+                "email": user.email,            
                 
             }), 200
         else:
-            return jsonify({
-                "msg": "La contraseña es incorrecta"
-            }), 400
+            return jsonify("La contraseña es incorrecta"), 400
     else:
-        return jsonify({
-            'message': 'El usuario no existe o la información es inválida'
-        }), 400
+        return jsonify("El usuario no existe o la información es inválida"), 400
 
 
 # GET
@@ -137,7 +133,7 @@ def get_user(user_id):
     if user is not None:
         return jsonify(user.serialize())
     else:
-        return jsonify({"message": "Usuario no encontrado"}), 404
+        return jsonify("Usuario no encontrado"), 404
 
 
 #PUT & DELETE
@@ -146,24 +142,21 @@ def get_user(user_id):
 def update_user(id):
     user = User.query.get(id)
     if user is not None:
-        if user is not None:
+        if request.method == "DELETE":
             user_description = User_description.query.filter_by(user_id=id).first()
             if user_description is not None:
                 db.session.delete(user_description)
             db.session.delete(user)
             db.session.commit()
-            return jsonify("Usuario y descripción eliminados"), 204
+            return jsonify("Usuario y descripción eliminada"), 204
         else:
-            if 'name' in request.json:
-                user.name = request.json.get("name")
-            if 'last_name' in request.json:
-                user.last_name = request.json.get("last_name")
-            if 'password' in request.json:
-                user.password = request.json.get("password")
-            if 'email' in request.json:
-                user.email = request.json.get("email")
-            if 'rol_id' in request.json:
-                user.rol_id = request.json.get("rol_id")
+            user.name = request.json.get("name")
+            user.last_name = request.json.get("last_name")
+            user.phone = request.json.get("phone")
+            user.email = request.json.get("email", user.email)
+            user.rol_id = request.json.get("rol_id", user.rol_id)
+            user.password = request.json.get("password", user.password)
+
             db.session.commit()
             return jsonify("Usuario actualizado"), 200
     return jsonify("Usuario no encontrado"), 404
@@ -232,6 +225,7 @@ def get_user_with_description(id):
 #PUT & DELETE
 
 @app.route("/description/<int:id>", methods=["PUT", "DELETE"])
+@jwt_required()
 def update_description(id):
     user_description =  User_description.query.get(id)
     if user_description is not None:
@@ -240,14 +234,10 @@ def update_description(id):
             db.session.commit()
             return jsonify("Description eliminada"), 204
         else:
-            if "description" in request.json:
-                user_description.description = request.json["description"]
-            if "motivation" in request.json:
-                user_description.motivation = request.json["motivation"]
-            if "style" in request.json:
-                user_description.style = request.json["style"]
-            if "user_id" in request.json:
-                user_description.user_id = request.json["user_id"]
+            user_description.description = request.json("description", user_description.description)
+            user_description.motivation = request.json("motivation", user_description.motivation)
+            user_description.style = request.json("style", user_description.style)
+            user_description.user_id = request.json("user_id", user_description.user_id)
             
             db.session.commit()
         
@@ -315,26 +305,16 @@ def update_pet(id):
             db.session.commit()
             return jsonify("Mascota eliminada"), 204
         else:
-            if "name" in request.json:
-                pet.name = request.json["name"]
-            if "gender" in request.json:
-                pet.gender = request.json["gender"]
-            if "age" in request.json:
-                pet.age = request.json["age"]
-            if "description" in request.json:
-                pet.description = request.json["description"]
-            if "species" in request.json:
-                pet.species = request.json["species"]
-            if "size" in request.json:
-                pet.size = request.json["size"]
-            if "medical_history" in request.json:
-                pet.medical_history = request.json["medical_history"]
-            if "is_adopted" in request.json:
-                pet.is_adopted = request.json["is_adopted"]
-            if "adress_id" in request.json:
-                pet.adress_id = request.json["adress_id"]
-            if "rol_id" in request.json:
-                pet.rol_id = request.json["rol_id"]
+            pet.name = request.json("name", pet.name)
+            pet.gender = request.json("gender", pet.gender)
+            pet.age = request.json("age", pet.age)
+            pet.description = request.json("description", pet.description)
+            pet.species = request.json("species", pet.species)
+            pet.size = request.json("size", pet.size)
+            pet.medical_history = request.json("medical_history", pet.medical_history)
+            pet.is_adopted = request.json("is_adopted", pet.is_adopted)
+            pet.adress_id = request.json("adress_id", pet.adress_id)
+            pet.rol_id = request.json("rol_id", pet.rol_id)
             
             db.session.commit()
         
