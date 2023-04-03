@@ -79,7 +79,7 @@ def create_user():
     # Verifica si el correo ya existe en la base de datos
     existing_user = User.query.filter_by(email=email).first()
     if existing_user:
-        return jsonify({"El correo ya existe en la base de datos"}), 400
+        return jsonify("El correo ya existe en la base de datos"), 400
 
     # Crea un nuevo objeto User
     new_user = User(name=name, last_name=last_name, email=email, phone=phone, rol_id=rol_id, password=password)
@@ -89,7 +89,7 @@ def create_user():
     db.session.commit()
 
     # Devuelve una respuesta con código de estado HTTP 201
-    return jsonify({'message': 'Usuario guardado'}), 201
+    return jsonify("Usuario guardado"), 201
 
 #LOGIN
 
@@ -110,13 +110,9 @@ def login():
                 
             }), 200
         else:
-            return jsonify({
-                'message': 'La contraseña es incorrecta'
-            }), 400
+            return jsonify("La contraseña es incorrecta"), 400
     else:
-        return jsonify({
-            'message': 'El usuario no existe o la información es inválida'
-        }), 400
+        return jsonify("El usuario no existe o la información es inválida"), 400
 
 
 # GET
@@ -137,7 +133,7 @@ def get_user(user_id):
     if user is not None:
         return jsonify(user.serialize())
     else:
-        return jsonify({"message": "Usuario no encontrado"}), 404
+        return jsonify("Usuario no encontrado"), 404
 
 
 #PUT & DELETE
@@ -152,7 +148,7 @@ def update_user(id):
                 db.session.delete(user_description)
             db.session.delete(user)
             db.session.commit()
-            return jsonify("Usuario y descripción eliminados"), 204
+            return jsonify("Usuario y descripción eliminada"), 204
         else:
             user.name = request.json.get("name")
             user.last_name = request.json.get("last_name")
