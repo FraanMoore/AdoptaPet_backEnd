@@ -510,6 +510,7 @@ def update_adress(id):
     return jsonify("Ubicación no encontrada"), 404
 
 
+
 #FORM
 
 #POST
@@ -569,7 +570,7 @@ def create_form():
 
     return jsonify("Formulario guardado"), 201
 
-#GET
+#GET 
 
 @app.route("/form/list", methods=["GET"])
 def get_form():
@@ -578,6 +579,7 @@ def get_form():
     for form in form:
         result.append(form.serialize())
     return jsonify(result)
+
 
 #PUT & DELETE
 
@@ -643,6 +645,7 @@ def update_form(id):
             return jsonify("Formulario actualizado"), 200
     
     return jsonify("Formulario no encontrado"), 404
+
 
 
 
