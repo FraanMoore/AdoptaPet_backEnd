@@ -4,6 +4,7 @@ from flask_migrate import Migrate
 from flask_bcrypt import Bcrypt, generate_password_hash, check_password_hash
 from flask_jwt_extended import JWTManager, jwt_required, create_access_token, get_jwt_identity
 from flask_cors  import CORS
+from datetime import datetime
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
@@ -54,8 +55,7 @@ def update_rol(id):
             db.session.commit()
             return jsonify("Usuario eliminado"), 204
         else:
-            if 'name' in request.json:
-                rol.name = request.json.get("name")
+            rol.name = request.json.get("name")
             db.session.commit()
             return jsonify("Usuario actualizado"), 200
     return jsonify("Usuario no encontrado"), 404
@@ -80,7 +80,7 @@ def create_user():
     # Verifica si el correo ya existe en la base de datos
     existing_user = User.query.filter_by(email=email).first()
     if existing_user:
-        return "El correo ya existe en la base de datos", 400
+        return jsonify("El correo ya existe en la base de datos"), 400
 
     # Crea un nuevo objeto User
     new_user = User(name=name, last_name=last_name, email=email, phone=phone, rol_id=rol_id, password=password)
@@ -90,7 +90,7 @@ def create_user():
     db.session.commit()
 
     # Devuelve una respuesta con código de estado HTTP 201
-    return "Usuario guardado", 201
+    return jsonify("Usuario guardado"), 201
 
 #LOGIN
 
@@ -104,16 +104,16 @@ def login():
         if is_valid:
             access_token = create_access_token(identity=email)
             return jsonify({
-                "token": access_token
+                "token": access_token,
+                "user_id": user.id,
+                "rol_id": user.rol_id, 
+                "email": user.email,            
+                
             }), 200
         else:
-            return jsonify({
-                "msg": "La contraseña es incorrecta"
-            }), 400
+            return jsonify("La contraseña es incorrecta"), 400
     else:
-        return jsonify({
-            "msg": "El usuario no existe o la información es inválida"
-        }), 400
+        return jsonify("El usuario no existe o la información es inválida"), 400
 
 
 # GET
@@ -126,6 +126,17 @@ def get_users():
         result.append(user.serialize())
     return jsonify(result)
 
+#GET USER BY ID
+
+@app.route("/users/<int:user_id>", methods=["GET"])
+def get_user(user_id):
+    user = User.query.filter_by(id=user_id).first()
+    if user is not None:
+        return jsonify(user.serialize())
+    else:
+        return jsonify("Usuario no encontrado"), 404
+
+
 #PUT & DELETE
 
 @app.route("/users/<int:id>", methods=["PUT", "DELETE"])
@@ -133,20 +144,20 @@ def update_user(id):
     user = User.query.get(id)
     if user is not None:
         if request.method == "DELETE":
+            user_description = User_description.query.filter_by(user_id=id).first()
+            if user_description is not None:
+                db.session.delete(user_description)
             db.session.delete(user)
             db.session.commit()
-            return jsonify("Eliminado"), 204
+            return jsonify("Usuario y descripción eliminada"), 204
         else:
-            if 'name' in request.json:
-                user.name = request.json.get("name")
-            if 'last_name' in request.json:
-                user.last_name = request.json.get("last_name")
-            if 'password' in request.json:
-                user.password = request.json.get("password")
-            if 'email' in request.json:
-                user.email = request.json.get("email")
-            if 'rol_id' in request.json:
-                user.rol_id = request.json.get("rol_id")
+            user.name = request.json.get("name")
+            user.last_name = request.json.get("last_name")
+            user.phone = request.json.get("phone")
+            user.email = request.json.get("email", user.email)
+            user.rol_id = request.json.get("rol_id", user.rol_id)
+            user.password = request.json.get("password", user.password)
+
             db.session.commit()
             return jsonify("Usuario actualizado"), 200
     return jsonify("Usuario no encontrado"), 404
@@ -156,18 +167,24 @@ def update_user(id):
 
 #POST
 
-@app.route("/users/<int:user_id>/description", methods=["POST"])
-def create_description(user_id):
+@app.route("/users/description/", methods=["POST"])
+@jwt_required()
+def create_description():
     user_description = User_description()
     user_description.description = request.json.get("description")
     user_description.motivation = request.json.get("motivation")
     user_description.style = request.json.get("style")
     user_description.user_id = request.json.get("user_id")
     
+    existing_description = User_description.query.filter_by(user_id=request.json.get("user_id")).first()
+    if existing_description:
+        db.session.delete(existing_description)
+        db.session.commit()
+    
     db.session.add(user_description)
     db.session.commit()
     
-    return "Descrcripción guardada", 201
+    return jsonify("Descripción guardada"), 201
 
 #GET
 
@@ -181,7 +198,8 @@ def get_description():
 
 # GET user with description
 
-@app.route("/users/description/list/<int:id>", methods=["GET"])
+@app.route("/users/description/<int:id>", methods=["GET"])
+@jwt_required()
 def get_user_with_description(id):
     user = User.query.filter_by(id=id).first()  # Obtener el usuario por su id
     if user is not None:
@@ -208,22 +226,19 @@ def get_user_with_description(id):
 #PUT & DELETE
 
 @app.route("/description/<int:id>", methods=["PUT", "DELETE"])
+@jwt_required()
 def update_description(id):
     user_description =  User_description.query.get(id)
     if user_description is not None:
         if request.method == "DELETE":
             db.session.delete(user_description)
             db.session.commit()
-            return "Description eliminada", 204
+            return jsonify("Description eliminada"), 204
         else:
-            if "description" in request.json:
-                user_description.description = request.json["description"]
-            if "motivation" in request.json:
-                user_description.motivation = request.json["motivation"]
-            if "style" in request.json:
-                user_description.style = request.json["style"]
-            if "user_id" in request.json:
-                user_description.user_id = request.json["user_id"]
+            user_description.description = request.json("description", user_description.description)
+            user_description.motivation = request.json("motivation", user_description.motivation)
+            user_description.style = request.json("style", user_description.style)
+            user_description.user_id = request.json("user_id", user_description.user_id)
             
             db.session.commit()
         
@@ -253,12 +268,26 @@ def create_pet():
     db.session.add(pet)
     db.session.commit()
     
-    return "Mascota guardada", 201
+    return jsonify("Mascota guardada"), 201
+
+
+
+
+@app.route('/pet/<int:id>', methods=['GET'])
+def get_planet_id(id):
+    pet = Pet.query.get(id)
+    if pet is not None:
+        return jsonify(pet.serialize())
+    else:
+        return jsonify('No se encontró el objeto People con el ID especificado')
+
+
+
+
 
 #GET
 
 @app.route("/pets/list", methods=["GET"])
-@jwt_required()
 def get_pets():
     pets = Pet.query.all()
     result = []
@@ -275,28 +304,18 @@ def update_pet(id):
         if request.method == "DELETE":
             db.session.delete(pet)
             db.session.commit()
-            return "Mascota eliminada", 204
+            return jsonify("Mascota eliminada"), 204
         else:
-            if "name" in request.json:
-                pet.name = request.json["name"]
-            if "gender" in request.json:
-                pet.gender = request.json["gender"]
-            if "age" in request.json:
-                pet.age = request.json["age"]
-            if "description" in request.json:
-                pet.description = request.json["description"]
-            if "species" in request.json:
-                pet.species = request.json["species"]
-            if "size" in request.json:
-                pet.size = request.json["size"]
-            if "medical_history" in request.json:
-                pet.medical_history = request.json["medical_history"]
-            if "is_adopted" in request.json:
-                pet.is_adopted = request.json["is_adopted"]
-            if "adress_id" in request.json:
-                pet.adress_id = request.json["adress_id"]
-            if "rol_id" in request.json:
-                pet.rol_id = request.json["rol_id"]
+            pet.name = request.json("name", pet.name)
+            pet.gender = request.json("gender", pet.gender)
+            pet.age = request.json("age", pet.age)
+            pet.description = request.json("description", pet.description)
+            pet.species = request.json("species", pet.species)
+            pet.size = request.json("size", pet.size)
+            pet.medical_history = request.json("medical_history", pet.medical_history)
+            pet.is_adopted = request.json("is_adopted", pet.is_adopted)
+            pet.adress_id = request.json("adress_id", pet.adress_id)
+            pet.rol_id = request.json("rol_id", pet.rol_id)
             
             db.session.commit()
         
@@ -318,7 +337,7 @@ def create_favorite():
     db.session.add(favorites)
     db.session.commit()
 
-    return "Favorito guardado", 201
+    return jsonify("Favorito guardado"), 201
 
 #GET
 
@@ -350,7 +369,7 @@ def update_favorites(id):
             db.session.delete(favorite)
             db.session.commit()
             
-            return "Favorito eliminado", 204
+            return jsonify("Favorito eliminado"), 204
         else:    
             if "pet_id" in request.json:
                 favorite.pet_id = request.json.get("pet_id")
@@ -373,13 +392,15 @@ def update_favorites(id):
 def create_post():
     posts = Post()
     posts.title = request.json.get("title")
+    posts.date = datetime.strptime(request.json.get("date") +" 00:00:00","%Y-%m-%d %H:%M:%S")
     posts.description = request.json.get("description")
+    #posts.imagepost = request.json.get("image")
     posts.rol_id = request.json.get("rol_id")
     
     db.session.add(posts)
     db.session.commit()
 
-    return "Publicación guardada", 201
+    return jsonify("Publicación guardada"), 201
     
 #GET
 
@@ -401,7 +422,7 @@ def update_posts(id):
             db.session.delete(post)
             db.session.commit()
             
-            return "Publicación eliminada", 204
+            return jsonify("Publicación eliminada"), 204
         else:
             title = request.json.get("title")
             if title is not None:
@@ -434,7 +455,7 @@ def create_adress():
     db.session.add(adress)
     db.session.commit()
 
-    return "Dirección guardada", 201
+    return jsonify("Dirección guardada"), 201
     
 #GET
 
@@ -456,7 +477,7 @@ def update_adress(id):
             db.session.delete(adress)
             db.session.commit()
             
-            return "Ubicación eliminada", 204
+            return jsonify("Ubicación eliminada"), 204
         else:    
             commune = request.json.get("commune")
             pet_id = request.json.get("pet_id")
@@ -529,7 +550,7 @@ def create_form():
     db.session.add(form)
     db.session.commit()
 
-    return "Formulario guardado", 201
+    return jsonify("Formulario guardado"), 201
 
 #GET
 
@@ -551,7 +572,7 @@ def update_form(id):
             db.session.delete(form)
             db.session.commit()
             
-            return "Publicación eliminada", 204
+            return jsonify("Publicación eliminada"), 204
         else:    
             form.user_id = request.json.get("user_id")
             form.query1 = request.json.get("query1")
