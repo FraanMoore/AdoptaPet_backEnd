@@ -280,6 +280,26 @@ def create_pet():
     return jsonify("Mascota guardada"), 201
 
 
+@app.route('/pets/search' , methods=['POST'])
+def search_pets():
+    gender = request.json.get("gender")
+    size = request.json.get("size")
+    species = request.json.get("species")
+
+    pets_query = Pet.query
+    if gender:
+        pets_query = pets_query.filter_by(gender=gender)
+    if size:
+        pets_query = pets_query.filter_by(size=size)
+    if species:
+        pets_query = pets_query.filter_by(species=species)
+
+    pets = pets_query.all()
+    pets = list(map(lambda pet: pet.serialize(), pets))
+
+    return jsonify(pets), 200
+
+
 
 
 @app.route('/pet/<int:id>', methods=['GET'])
@@ -439,7 +459,7 @@ def update_posts(id):
             db.session.delete(post)
             db.session.commit()
             
-            return jsonify("Publicación eliminada"), 204
+            return jsonify({"message": "Mascota eliminada"}), 204
         else:
             title = request.json.get("title")
             if title is not None:
