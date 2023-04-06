@@ -269,9 +269,6 @@ def create_pet():
     
     return jsonify("Mascota guardada"), 201
 
-
-
-
 @app.route('/pet/<int:id>', methods=['GET'])
 def get_planet_id(id):
     pet = Pet.query.get(id)
@@ -279,10 +276,6 @@ def get_planet_id(id):
         return jsonify(pet.serialize())
     else:
         return jsonify('No se encontró el objeto People con el ID especificado')
-
-
-
-
 
 #GET
 
@@ -353,10 +346,12 @@ def get_favorites():
 @app.route("/favorites/user/<int:user_id>", methods=["GET"])
 def get_favorite_user(user_id):
     favorites = Favorites.query.filter_by(user_id=user_id).all()
-    result = []
+    pet_list = []
     for favorite in favorites:
-        result.append(favorite.serialize())
-    return jsonify(result)
+        pet = Pet.query.get(favorite.pet_id)
+        if pet is not None:
+            pet_list.append(pet.serialize())
+    return jsonify(pet_list)
 
 #PUT & DELETE
 
