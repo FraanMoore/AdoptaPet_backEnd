@@ -344,6 +344,7 @@ def get_favorites():
 # GET favorite/user
 
 @app.route("/favorites/user/<int:user_id>", methods=["GET"])
+@jwt_required()
 def get_favorite_user(user_id):
     favorites = Favorites.query.filter_by(user_id=user_id).all()
     pet_list = []
