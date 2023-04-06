@@ -32,6 +32,7 @@ class User(db.Model):
     favorites = db.relationship("Favorites")
     
     rol = db.relationship("Rol", back_populates="users", overlaps="user")
+    forms = db.relationship("Form", backref="user")
 
     def serialize(self):
         return {
@@ -184,7 +185,7 @@ class Form(db.Model):
     def serialize(self):
         return {
             "id" : self.id,
-            "user_id" : self.user_id,
+            "user_id" : self.user_id,            
             "query1" : self.query1,
             "query2" : self.query2,
             "query3" : self.query3,
@@ -228,7 +229,8 @@ class Form(db.Model):
             "query41" : self.query41,
             "query42" : self.query42,
             "query43" : self.query43,
-            "query44" : self.query44
+            "query44" : self.query44,
+            "user": self.user.name + " " + self.user.last_name
     
             
         }
