@@ -146,8 +146,8 @@ def get_user(user_id):
 # PUT & DELETE
 
 @app.route("/users/<int:id>", methods=["PUT", "DELETE"])
-def update_user(id):
-    user = User.query.get(id)
+def update_user(id):    
+    user = User.query.get(id)    
     if user is not None:
         if request.method == "DELETE":
             user_description = User_description.query.filter_by(
