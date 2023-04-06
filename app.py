@@ -1,19 +1,31 @@
-from flask import Flask, request, jsonify
+import os
+
+from werkzeug.utils import secure_filename
+from flask import Flask, request, jsonify, send_from_directory
 from models import db , Rol, User, User_description, Pet, Favorites, Post, Adress, Form
 from flask_migrate import Migrate
 from flask_bcrypt import Bcrypt, generate_password_hash, check_password_hash
 from flask_jwt_extended import JWTManager, jwt_required, create_access_token, get_jwt_identity
 from flask_cors  import CORS
 
+
+upload_folder = os.path.join('static', 'uploads')
+
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
 app.config['JWT_SECRET_KEY'] = "super-secreta"
+app.config['UPLOAD'] = upload_folder
 db.init_app(app)   
 
 migrate = Migrate(app, db)
 jwt = JWTManager(app)
 bcrypt = Bcrypt(app)
 CORS(app)
+
+
+
+
+
 
 @app.route("/")
 def home():
@@ -252,22 +264,36 @@ def update_description(id):
 
 @app.route("/pets", methods=["POST"])
 def create_pet():
+    print(request.form)
+    print(request.files)
     pet = Pet()
-    pet.name = request.json.get("name")
-    pet.gender = request.json.get("gender")
-    pet.age = request.json.get("age")
-    pet.description = request.json.get("description")
-    pet.species = request.json.get("species")
-    pet.size = request.json.get("size")
-    pet.medical_history = request.json.get("medical_history")
-    pet.is_adopted = request.json.get("is_adopted")
-    pet.adress_id = request.json.get("adress_id")
-    pet.rol_id = request.json.get("rol_id")
-    
+    pet.name = request.form["name"]
+    pet.gender = request.form["gender"]
+    pet.age = request.form["age"]
+    pet.description = request.form["description"]
+    pet.species = request.form["species"]
+    pet.size = request.form["size"]
+    file = request.files['file']
+    filename = secure_filename(file.filename)
+    file.save(os.path.join(app.config['UPLOAD'], filename))
+    pet.img = filename
+    pet.medical_history = request.form["medical_history"]
+    pet.is_adopted = bool(request.form["is_adopted"])
+    pet.adress_id = request.form["adress_id"]
+    pet.rol_id = request.form["rol_id"]
+   
     db.session.add(pet)
     db.session.commit()
-    
+
+    print(pet)
     return jsonify("Mascota guardada"), 201
+
+
+@app.route('/uploads/<name>')
+def download_file(name):
+    return send_from_directory(app.config["UPLOAD"], name)
+
+
 
 
 @app.route('/pets/search' , methods=['POST'])
