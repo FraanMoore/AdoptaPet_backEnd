@@ -117,7 +117,7 @@ class Post(db.Model):
             "title" : self.title,
             "date" : self.date,
             "description": self.description,
-           # "imagePost" : self.imagePost,
+           # "imagePost" : self.imagePost
             "rol_id": self.rol_id
             
         }

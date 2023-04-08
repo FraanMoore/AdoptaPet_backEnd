@@ -354,10 +354,12 @@ def get_favorites():
 @app.route("/favorites/user/<int:user_id>", methods=["GET"])
 def get_favorite_user(user_id):
     favorites = Favorites.query.filter_by(user_id=user_id).all()
-    result = []
+    pet_list = []
     for favorite in favorites:
-        result.append(favorite.serialize())
-    return jsonify(result)
+        pet = Pet.query.get(favorite.pet_id)
+        if pet is not None:
+            pet_list.append(pet.serialize())
+    return jsonify(pet_list)
 
 #PUT & DELETE
 
@@ -402,7 +404,7 @@ def create_post():
 
     return jsonify("Publicación guardada"), 201
     
-#GET
+#GET    
 
 @app.route("/posts/list", methods=["GET"])
 def get_posts():
