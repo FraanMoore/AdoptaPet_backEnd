@@ -592,6 +592,7 @@ def get_form():
 # PUT & DELETE
 
 @app.route("/form/<int:id>", methods=["PUT", "DELETE"])
+@jwt_required()
 def update_form(id):
     form = Form.query.get(id)
     if form is not None:
