@@ -287,7 +287,49 @@ def create_pet():
 
     print(pet)
     return jsonify("Mascota guardada"), 201
-
+@app.route("/pet/<int:id>", methods=["PUT", "DELETE"])
+def update_pet(id):
+    pet = Pet.query.get(id)
+    if pet is not None:
+        if request.method == "DELETE":
+            db.session.delete(pet)
+            db.session.commit()
+            return jsonify("Mascota eliminada"), 204
+        else:
+            print(request.files)
+            if 'name' in request.form:
+                pet.name = request.form["name"]
+            if 'gender' in request.form:
+                pet.gender = request.form["gender"]
+            if 'age' in request.form:
+                pet.age = request.form["age"]
+            if 'description' in request.form:
+                pet.description = request.form["description"]
+            if 'species' in request.form:
+                pet.species = request.form["species"]
+            if 'size' in request.form:
+                pet.size = request.form["size"]
+            if 'file' in request.files:
+                file = request.files['file']
+                filename = secure_filename(file.filename)
+                file.save(os.path.join(app.config['UPLOAD'], filename))
+                pet.img = filename
+            if 'medical_history' in request.form:
+                pet.medical_history = request.form["medical_history"]
+            if 'is_adopted' in request.form:
+                pet.is_adopted = bool(request.form["is_adopted"])
+            if 'adress_id' in request.form:
+                pet.adress_id = request.form["adress_id"]
+            if 'rol_id' in request.form:
+                pet.rol_id = request.form["rol_id"]
+            
+            print(request.form)
+            
+            db.session.commit()
+        
+            return jsonify("Mascota actualizada"), 200
+    
+    return jsonify("Mascota no encontrada"), 404 
 
 @app.route('/uploads/<name>')
 def download_file(name):
@@ -342,31 +384,6 @@ def get_pets():
 
 #PUT & DELETE
 
-@app.route("/pet/<int:id>", methods=["PUT", "DELETE"])
-def update_pet(id):
-    pet = Pet.query.get(id)
-    if pet is not None:
-        if request.method == "DELETE":
-            db.session.delete(pet)
-            db.session.commit()
-            return jsonify("Mascota eliminada"), 204
-        else:
-            pet.name = request.json("name", pet.name)
-            pet.gender = request.json("gender", pet.gender)
-            pet.age = request.json("age", pet.age)
-            pet.description = request.json("description", pet.description)
-            pet.species = request.json("species", pet.species)
-            pet.size = request.json("size", pet.size)
-            pet.medical_history = request.json("medical_history", pet.medical_history)
-            pet.is_adopted = request.json("is_adopted", pet.is_adopted)
-            pet.adress_id = request.json("adress_id", pet.adress_id)
-            pet.rol_id = request.json("rol_id", pet.rol_id)
-            
-            db.session.commit()
-        
-            return jsonify("Mascota actualizada"), 200
-    
-    return jsonify("Mascota no encontrada"), 404
 
 
 #FAVORITES
