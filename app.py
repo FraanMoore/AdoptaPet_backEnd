@@ -1,19 +1,32 @@
-from flask import Flask, request, jsonify
-from models import db, Rol, User, User_description, Pet, Favorites, Post, Adress, Form
+import os
+
+from werkzeug.utils import secure_filename
+from flask import Flask, request, jsonify, send_from_directory
+from models import db , Rol, User, User_description, Pet, Favorites, Post, Adress, Form
 from flask_migrate import Migrate
 from flask_bcrypt import Bcrypt, generate_password_hash, check_password_hash
 from flask_jwt_extended import JWTManager, jwt_required, create_access_token, get_jwt_identity
+from flask_cors  import CORS
+from datetime import datetime
 from flask_cors import CORS
+
+
+upload_folder = os.path.join('static', 'uploads')
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
 app.config['JWT_SECRET_KEY'] = "super-secreta"
-db.init_app(app)
+app.config['UPLOAD'] = upload_folder
+db.init_app(app)   
 
 migrate = Migrate(app, db)
 jwt = JWTManager(app)
 bcrypt = Bcrypt(app)
 CORS(app)
+
+
+
+
 
 
 @app.route("/")
@@ -269,22 +282,98 @@ def update_description(id):
 
 @app.route("/pets", methods=["POST"])
 def create_pet():
+    print(request.form)
+    print(request.files)
     pet = Pet()
-    pet.name = request.json.get("name")
-    pet.gender = request.json.get("gender")
-    pet.age = request.json.get("age")
-    pet.description = request.json.get("description")
-    pet.species = request.json.get("species")
-    pet.size = request.json.get("size")
-    pet.medical_history = request.json.get("medical_history")
-    pet.is_adopted = request.json.get("is_adopted")
-    pet.adress_id = request.json.get("adress_id")
-    pet.rol_id = request.json.get("rol_id")
-
+    pet.name = request.form["name"]
+    pet.gender = request.form["gender"]
+    pet.age = request.form["age"]
+    pet.description = request.form["description"]
+    pet.species = request.form["species"]
+    pet.size = request.form["size"]
+    file = request.files['file']
+    filename = secure_filename(file.filename)
+    file.save(os.path.join(app.config['UPLOAD'], filename))
+    pet.img = filename
+    pet.medical_history = request.form["medical_history"]
+    pet.is_adopted = bool(request.form["is_adopted"])
+    pet.adress_id = request.form["adress_id"]
+    pet.rol_id = request.form["rol_id"]
+   
     db.session.add(pet)
     db.session.commit()
 
+    print(pet)
     return jsonify("Mascota guardada"), 201
+@app.route("/pet/<int:id>", methods=["PUT", "DELETE"])
+def update_pet(id):
+    pet = Pet.query.get(id)
+    if pet is not None:
+        if request.method == "DELETE":
+            db.session.delete(pet)
+            db.session.commit()
+            return jsonify("Mascota eliminada"), 204
+        else:
+            print(request.files)
+            if 'name' in request.form:
+                pet.name = request.form["name"]
+            if 'gender' in request.form:
+                pet.gender = request.form["gender"]
+            if 'age' in request.form:
+                pet.age = request.form["age"]
+            if 'description' in request.form:
+                pet.description = request.form["description"]
+            if 'species' in request.form:
+                pet.species = request.form["species"]
+            if 'size' in request.form:
+                pet.size = request.form["size"]
+            if 'file' in request.files:
+                file = request.files['file']
+                filename = secure_filename(file.filename)
+                file.save(os.path.join(app.config['UPLOAD'], filename))
+                pet.img = filename
+            if 'medical_history' in request.form:
+                pet.medical_history = request.form["medical_history"]
+            if 'is_adopted' in request.form:
+                pet.is_adopted = bool(request.form["is_adopted"])
+            if 'adress_id' in request.form:
+                pet.adress_id = request.form["adress_id"]
+            if 'rol_id' in request.form:
+                pet.rol_id = request.form["rol_id"]
+            
+            print(request.form)
+            
+            db.session.commit()
+        
+            return jsonify("Mascota actualizada"), 200
+    
+    return jsonify("Mascota no encontrada"), 404 
+
+@app.route('/uploads/<name>')
+def download_file(name):
+    return send_from_directory(app.config["UPLOAD"], name)
+
+
+
+
+@app.route('/pets/search' , methods=['POST'])
+def search_pets():
+    gender = request.json.get("gender")
+    size = request.json.get("size")
+    species = request.json.get("species")
+
+    pets_query = Pet.query
+    if gender:
+        pets_query = pets_query.filter_by(gender=gender)
+    if size:
+        pets_query = pets_query.filter_by(size=size)
+    if species:
+        pets_query = pets_query.filter_by(species=species)
+
+    pets = pets_query.all()
+    pets = list(map(lambda pet: pet.serialize(), pets))
+
+    return jsonify(pets), 200
 
 
 @app.route('/pet/<int:id>', methods=['GET'])
@@ -309,32 +398,6 @@ def get_pets():
 # PUT & DELETE
 
 
-@app.route("/pet/<int:id>", methods=["PUT", "DELETE"])
-def update_pet(id):
-    pet = Pet.query.get(id)
-    if pet is not None:
-        if request.method == "DELETE":
-            db.session.delete(pet)
-            db.session.commit()
-            return jsonify("Mascota eliminada"), 204
-        else:
-            pet.name = request.json("name", pet.name)
-            pet.gender = request.json("gender", pet.gender)
-            pet.age = request.json("age", pet.age)
-            pet.description = request.json("description", pet.description)
-            pet.species = request.json("species", pet.species)
-            pet.size = request.json("size", pet.size)
-            pet.medical_history = request.json(
-                "medical_history", pet.medical_history)
-            pet.is_adopted = request.json("is_adopted", pet.is_adopted)
-            pet.adress_id = request.json("adress_id", pet.adress_id)
-            pet.rol_id = request.json("rol_id", pet.rol_id)
-
-            db.session.commit()
-
-            return jsonify("Mascota actualizada"), 200
-
-    return jsonify("Mascota no encontrada"), 404
 
 
 # FAVORITES
@@ -369,10 +432,12 @@ def get_favorites():
 @app.route("/favorites/user/<int:user_id>", methods=["GET"])
 def get_favorite_user(user_id):
     favorites = Favorites.query.filter_by(user_id=user_id).all()
-    result = []
+    pet_list = []
     for favorite in favorites:
-        result.append(favorite.serialize())
-    return jsonify(result)
+        pet = Pet.query.get(favorite.pet_id)
+        if pet is not None:
+            pet_list.append(pet.serialize())
+    return jsonify(pet_list)
 
 # PUT & DELETE
 
@@ -411,13 +476,17 @@ def update_favorites(id):
 def create_post():
     posts = Post()
     posts.title = request.json.get("title")
+    posts.date = datetime.strptime(request.json.get("date") +" 00:00:00","%Y-%m-%d %H:%M:%S")
     posts.description = request.json.get("description")
+    #posts.imagepost = request.json.get("image")
     posts.rol_id = request.json.get("rol_id")
 
     db.session.add(posts)
     db.session.commit()
 
     return jsonify("Publicación guardada"), 201
+    
+#GET    
 
 # GET
 
@@ -455,7 +524,7 @@ def update_posts(id):
 
             db.session.commit()
 
-            return jsonify("Publicación actualizada"), 200
+            return jsonify("Publicación actualizada!"), 200
 
     return jsonify("Publicación no encontrada"), 404
 

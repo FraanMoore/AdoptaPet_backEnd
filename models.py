@@ -70,6 +70,7 @@ class Pet(db.Model):
     description = db.Column(db.String(500), nullable=False)
     species = db.Column(db.String(50), nullable=False)
     size = db.Column(db.String(50), nullable=False)
+    img = db.Column(db.String(100), default = '')
     medical_history = db.Column(db.String(500), nullable=False)
     is_adopted = db.Column(db.Boolean, unique=False, default=False)
     adress_id = db.Column(db.String(500), nullable=False)
@@ -84,6 +85,7 @@ class Pet(db.Model):
             "description" : self.description,
             "species" : self.species,
             "size" : self.size,
+            'img': self.img,
             "medical_history" : self.medical_history,
             "is_adopted" : self.is_adopted,
             "adress_id" :  self.adress_id,
@@ -107,14 +109,18 @@ class Post(db.Model):
     __tablename__ = 'post'
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(50), nullable=False)
+    date = db.Column(db.DateTime, nullable=False)
     description = db.Column(db.String(500), nullable=False)
+    #imagePost = db.Column(db.LargeBinary, nullable=False)
     rol_id = db.Column(db.Integer, db.ForeignKey('rol.id'))
 
     def serialize(self):
         return {
             "id" : self.id,  
             "title" : self.title,
+            "date" : self.date,
             "description": self.description,
+           # "imagePost" : self.imagePost
             "rol_id": self.rol_id
             
         }
