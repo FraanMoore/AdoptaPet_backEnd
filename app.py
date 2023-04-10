@@ -1,14 +1,22 @@
-from flask import Flask, request, jsonify
+import os
+
+from werkzeug.utils import secure_filename
+from flask import Flask, request, jsonify, send_from_directory
 from models import db , Rol, User, User_description, Pet, Favorites, Post, Adress, Form
 from flask_migrate import Migrate
 from flask_bcrypt import Bcrypt, generate_password_hash, check_password_hash
 from flask_jwt_extended import JWTManager, jwt_required, create_access_token, get_jwt_identity
 from flask_cors  import CORS
 from datetime import datetime
+from flask_cors import CORS
+
+
+upload_folder = os.path.join('static', 'uploads')
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
 app.config['JWT_SECRET_KEY'] = "super-secreta"
+app.config['UPLOAD'] = upload_folder
 db.init_app(app)   
 
 migrate = Migrate(app, db)
@@ -16,25 +24,32 @@ jwt = JWTManager(app)
 bcrypt = Bcrypt(app)
 CORS(app)
 
+
+
+
+
+
 @app.route("/")
 def home():
     return "Hello world"
 
-#ROL
+# ROL
 
-#POST
+# POST
+
 
 @app.route("/rols", methods=["POST"])
 def create_rol():
     rol = Rol()
     rol.name = request.json.get("name")
-    
+
     db.session.add(rol)
     db.session.commit()
-    
-    return "Usuario guardado", 201 
 
-#GET
+    return "Usuario guardado", 201
+
+# GET
+
 
 @app.route("/rols/list", methods=["GET"])
 def get_rols():
@@ -44,7 +59,8 @@ def get_rols():
         result.append(rol.serialize())
     return jsonify(result)
 
-#PUT & DELETE
+# PUT & DELETE
+
 
 @app.route("/rols/<int:id>", methods=["PUT", "DELETE"])
 def update_rol(id):
@@ -61,9 +77,9 @@ def update_rol(id):
     return jsonify("Usuario no encontrado"), 404
 
 
-#USER
+# USER
 
-#POST
+# POST
 
 @app.route("/users", methods=["POST"])
 def create_user():
@@ -83,7 +99,8 @@ def create_user():
         return jsonify("El correo ya existe en la base de datos"), 400
 
     # Crea un nuevo objeto User
-    new_user = User(name=name, last_name=last_name, email=email, phone=phone, rol_id=rol_id, password=password)
+    new_user = User(name=name, last_name=last_name, email=email,
+                    phone=phone, rol_id=rol_id, password=password)
 
     # Agrega el usuario a la sesión de la base de datos
     db.session.add(new_user)
@@ -92,7 +109,8 @@ def create_user():
     # Devuelve una respuesta con código de estado HTTP 201
     return jsonify("Usuario guardado"), 201
 
-#LOGIN
+# LOGIN
+
 
 @app.route("/login", methods=["POST"])
 def login():
@@ -106,9 +124,9 @@ def login():
             return jsonify({
                 "token": access_token,
                 "user_id": user.id,
-                "rol_id": user.rol_id, 
-                "email": user.email,            
-                
+                "rol_id": user.rol_id,
+                "email": user.email,
+
             }), 200
         else:
             return jsonify("La contraseña es incorrecta"), 400
@@ -126,7 +144,8 @@ def get_users():
         result.append(user.serialize())
     return jsonify(result)
 
-#GET USER BY ID
+# GET USER BY ID
+
 
 @app.route("/users/<int:user_id>", methods=["GET"])
 def get_user(user_id):
@@ -137,14 +156,15 @@ def get_user(user_id):
         return jsonify("Usuario no encontrado"), 404
 
 
-#PUT & DELETE
+# PUT & DELETE
 
 @app.route("/users/<int:id>", methods=["PUT", "DELETE"])
-def update_user(id):
-    user = User.query.get(id)
+def update_user(id):    
+    user = User.query.get(id)    
     if user is not None:
         if request.method == "DELETE":
-            user_description = User_description.query.filter_by(user_id=id).first()
+            user_description = User_description.query.filter_by(
+                user_id=id).first()
             if user_description is not None:
                 db.session.delete(user_description)
             db.session.delete(user)
@@ -163,9 +183,9 @@ def update_user(id):
     return jsonify("Usuario no encontrado"), 404
 
 
-#USER_DESCRIPTION
+# USER_DESCRIPTION
 
-#POST
+# POST
 
 @app.route("/users/description/", methods=["POST"])
 @jwt_required()
@@ -175,18 +195,20 @@ def create_description():
     user_description.motivation = request.json.get("motivation")
     user_description.style = request.json.get("style")
     user_description.user_id = request.json.get("user_id")
-    
-    existing_description = User_description.query.filter_by(user_id=request.json.get("user_id")).first()
+
+    existing_description = User_description.query.filter_by(
+        user_id=request.json.get("user_id")).first()
     if existing_description:
         db.session.delete(existing_description)
         db.session.commit()
-    
+
     db.session.add(user_description)
     db.session.commit()
-    
+
     return jsonify("Descripción guardada"), 201
 
-#GET
+# GET
+
 
 @app.route("/descriptions/list", methods=["GET"])
 def get_description():
@@ -198,12 +220,14 @@ def get_description():
 
 # GET user with description
 
+
 @app.route("/users/description/<int:id>", methods=["GET"])
 @jwt_required()
 def get_user_with_description(id):
     user = User.query.filter_by(id=id).first()  # Obtener el usuario por su id
     if user is not None:
-        user_description = User_description.query.filter_by(user_id=id).first()  # Obtener la descripción del usuario por su id
+        user_description = User_description.query.filter_by(
+            user_id=id).first()  # Obtener la descripción del usuario por su id
         if user_description is not None:
             # Crear un diccionario con los datos del usuario y su descripción
             result = {
@@ -223,54 +247,133 @@ def get_user_with_description(id):
     else:
         return jsonify("Usuario no encontrado"), 404
 
-#PUT & DELETE
+# PUT & DELETE
+
 
 @app.route("/description/<int:id>", methods=["PUT", "DELETE"])
 @jwt_required()
 def update_description(id):
-    user_description =  User_description.query.get(id)
+    user_description = User_description.query.get(id)
     if user_description is not None:
         if request.method == "DELETE":
             db.session.delete(user_description)
             db.session.commit()
             return jsonify("Description eliminada"), 204
         else:
-            user_description.description = request.json("description", user_description.description)
-            user_description.motivation = request.json("motivation", user_description.motivation)
-            user_description.style = request.json("style", user_description.style)
-            user_description.user_id = request.json("user_id", user_description.user_id)
-            
+            user_description.description = request.json(
+                "description", user_description.description)
+            user_description.motivation = request.json(
+                "motivation", user_description.motivation)
+            user_description.style = request.json(
+                "style", user_description.style)
+            user_description.user_id = request.json(
+                "user_id", user_description.user_id)
+
             db.session.commit()
-        
+
             return jsonify("Descripción actualizada"), 200
-    
+
     return jsonify("Descripción no encontrada"), 404
 
-    
-#PET
 
-#POST
+# PET
+
+# POST
 
 @app.route("/pets", methods=["POST"])
 def create_pet():
+    print(request.form)
+    print(request.files)
     pet = Pet()
-    pet.name = request.json.get("name")
-    pet.gender = request.json.get("gender")
-    pet.age = request.json.get("age")
-    pet.description = request.json.get("description")
-    pet.species = request.json.get("species")
-    pet.size = request.json.get("size")
-    pet.medical_history = request.json.get("medical_history")
-    pet.is_adopted = request.json.get("is_adopted")
-    pet.adress_id = request.json.get("adress_id")
-    pet.rol_id = request.json.get("rol_id")
-    
+    pet.name = request.form["name"]
+    pet.gender = request.form["gender"]
+    pet.age = request.form["age"]
+    pet.description = request.form["description"]
+    pet.species = request.form["species"]
+    pet.size = request.form["size"]
+    file = request.files['file']
+    filename = secure_filename(file.filename)
+    file.save(os.path.join(app.config['UPLOAD'], filename))
+    pet.img = filename
+    pet.medical_history = request.form["medical_history"]
+    pet.is_adopted = bool(request.form["is_adopted"])
+    pet.adress_id = request.form["adress_id"]
+    pet.rol_id = request.form["rol_id"]
+   
     db.session.add(pet)
     db.session.commit()
-    
+
+    print(pet)
     return jsonify("Mascota guardada"), 201
+@app.route("/pet/<int:id>", methods=["PUT", "DELETE"])
+def update_pet(id):
+    pet = Pet.query.get(id)
+    if pet is not None:
+        if request.method == "DELETE":
+            db.session.delete(pet)
+            db.session.commit()
+            return jsonify("Mascota eliminada"), 204
+        else:
+            print(request.files)
+            if 'name' in request.form:
+                pet.name = request.form["name"]
+            if 'gender' in request.form:
+                pet.gender = request.form["gender"]
+            if 'age' in request.form:
+                pet.age = request.form["age"]
+            if 'description' in request.form:
+                pet.description = request.form["description"]
+            if 'species' in request.form:
+                pet.species = request.form["species"]
+            if 'size' in request.form:
+                pet.size = request.form["size"]
+            if 'file' in request.files:
+                file = request.files['file']
+                filename = secure_filename(file.filename)
+                file.save(os.path.join(app.config['UPLOAD'], filename))
+                pet.img = filename
+            if 'medical_history' in request.form:
+                pet.medical_history = request.form["medical_history"]
+            if 'is_adopted' in request.form:
+                pet.is_adopted = bool(request.form["is_adopted"])
+            if 'adress_id' in request.form:
+                pet.adress_id = request.form["adress_id"]
+            if 'rol_id' in request.form:
+                pet.rol_id = request.form["rol_id"]
+            
+            print(request.form)
+            
+            db.session.commit()
+        
+            return jsonify("Mascota actualizada"), 200
+    
+    return jsonify("Mascota no encontrada"), 404 
+
+@app.route('/uploads/<name>')
+def download_file(name):
+    return send_from_directory(app.config["UPLOAD"], name)
 
 
+
+
+@app.route('/pets/search' , methods=['POST'])
+def search_pets():
+    gender = request.json.get("gender")
+    size = request.json.get("size")
+    species = request.json.get("species")
+
+    pets_query = Pet.query
+    if gender:
+        pets_query = pets_query.filter_by(gender=gender)
+    if size:
+        pets_query = pets_query.filter_by(size=size)
+    if species:
+        pets_query = pets_query.filter_by(species=species)
+
+    pets = pets_query.all()
+    pets = list(map(lambda pet: pet.serialize(), pets))
+
+    return jsonify(pets), 200
 
 
 @app.route('/pet/<int:id>', methods=['GET'])
@@ -282,10 +385,7 @@ def get_planet_id(id):
         return jsonify('No se encontró el objeto People con el ID especificado')
 
 
-
-
-
-#GET
+# GET
 
 @app.route("/pets/list", methods=["GET"])
 def get_pets():
@@ -295,51 +395,28 @@ def get_pets():
         result.append(pet.serialize())
     return jsonify(result)
 
-#PUT & DELETE
-
-@app.route("/pet/<int:id>", methods=["PUT", "DELETE"])
-def update_pet(id):
-    pet = Pet.query.get(id)
-    if pet is not None:
-        if request.method == "DELETE":
-            db.session.delete(pet)
-            db.session.commit()
-            return jsonify("Mascota eliminada"), 204
-        else:
-            pet.name = request.json("name", pet.name)
-            pet.gender = request.json("gender", pet.gender)
-            pet.age = request.json("age", pet.age)
-            pet.description = request.json("description", pet.description)
-            pet.species = request.json("species", pet.species)
-            pet.size = request.json("size", pet.size)
-            pet.medical_history = request.json("medical_history", pet.medical_history)
-            pet.is_adopted = request.json("is_adopted", pet.is_adopted)
-            pet.adress_id = request.json("adress_id", pet.adress_id)
-            pet.rol_id = request.json("rol_id", pet.rol_id)
-            
-            db.session.commit()
-        
-            return jsonify("Mascota actualizada"), 200
-    
-    return jsonify("Mascota no encontrada"), 404
+# PUT & DELETE
 
 
-#FAVORITES
 
-#POST
+
+# FAVORITES
+
+# POST
 
 @app.route("/favorites", methods=["POST"])
 def create_favorite():
     favorites = Favorites()
     favorites.pet_id = request.json.get("pet_id")
     favorites.user_id = request.json.get("user_id")
-    
+
     db.session.add(favorites)
     db.session.commit()
 
     return jsonify("Favorito guardado"), 201
 
-#GET
+# GET
+
 
 @app.route("/favorites/list", methods=["GET"])
 def get_favorites():
@@ -351,6 +428,7 @@ def get_favorites():
 
 # GET favorite/user
 
+
 @app.route("/favorites/user/<int:user_id>", methods=["GET"])
 def get_favorite_user(user_id):
     favorites = Favorites.query.filter_by(user_id=user_id).all()
@@ -361,7 +439,8 @@ def get_favorite_user(user_id):
             pet_list.append(pet.serialize())
     return jsonify(pet_list)
 
-#PUT & DELETE
+# PUT & DELETE
+
 
 @app.route("/favorites/<int:id>", methods=["PUT", "DELETE"])
 def update_favorites(id):
@@ -370,25 +449,28 @@ def update_favorites(id):
         if request.method == "DELETE":
             db.session.delete(favorite)
             db.session.commit()
-            
+
             return jsonify("Favorito eliminado"), 204
-        else:    
+        else:
             if "pet_id" in request.json:
                 favorite.pet_id = request.json.get("pet_id")
             if "user_id" in request.json:
                 favorite.user_id = request.json.get("user_id")
             
+            
+        
+
         
             db.session.commit()
-        
+
             return jsonify("Favoritos actualizados"), 200
-    
+
     return jsonify("Favoritos no encontrados"), 404
 
 
-#POST
+# POST
 
-#POST
+# POST
 
 @app.route("/posts", methods=["POST"])
 def create_post():
@@ -398,13 +480,16 @@ def create_post():
     posts.description = request.json.get("description")
     #posts.imagepost = request.json.get("image")
     posts.rol_id = request.json.get("rol_id")
-    
+
     db.session.add(posts)
     db.session.commit()
 
     return jsonify("Publicación guardada"), 201
     
 #GET    
+
+# GET
+
 
 @app.route("/posts/list", methods=["GET"])
 def get_posts():
@@ -414,7 +499,8 @@ def get_posts():
         result.append(post.serialize())
     return jsonify(result)
 
-#PUT & DELETE
+# PUT & DELETE
+
 
 @app.route("/posts/<int:id>", methods=["PUT", "DELETE"])
 def update_posts(id):
@@ -423,7 +509,7 @@ def update_posts(id):
         if request.method == "DELETE":
             db.session.delete(post)
             db.session.commit()
-            
+
             return jsonify("Publicación eliminada"), 204
         else:
             title = request.json.get("title")
@@ -435,31 +521,36 @@ def update_posts(id):
             rol_id = request.json.get("rol_id")
             if rol_id is not None:
                 post.rol_id = rol_id
-            
+
             db.session.commit()
-        
-            return jsonify("Publicación actualizada"), 200
-    
+
+            return jsonify("Publicación actualizada!"), 200
+
     return jsonify("Publicación no encontrada"), 404
 
 
-#ADRESS
+# ADRESS
 
-#POST
+# POST
 
 @app.route("/adress", methods=["POST"])
 def create_adress():
     adress = Adress()
     adress.commune = request.json.get("commune")
     adress.pet_id = request.json.get("pet_id")
+    adress.pet_id = request.json.get("pet_id")
+
+    
+    adress.pet_id = request.json.get("pet_id")    
 
     
     db.session.add(adress)
     db.session.commit()
 
     return jsonify("Dirección guardada"), 201
-    
-#GET
+
+# GET
+
 
 @app.route("/adress/list", methods=["GET"])
 def get_adress():
@@ -469,37 +560,39 @@ def get_adress():
         result.append(adress.serialize())
     return jsonify(result)
 
-#PUT & DELETE
+# PUT & DELETE
+
 
 @app.route("/adress/<int:id>", methods=["PUT", "DELETE"])
 def update_adress(id):
-    adress =  Adress.query.get(id)
+    adress = Adress.query.get(id)
     if adress is not None:
         if request.method == "DELETE":
             db.session.delete(adress)
             db.session.commit()
-            
+
             return jsonify("Ubicación eliminada"), 204
-        else:    
+        else:
             commune = request.json.get("commune")
             pet_id = request.json.get("pet_id")
             if commune is not None:
                 adress.commune = commune
             if pet_id is not None:
                 adress.pet_id = pet_id
-        
+
             db.session.commit()
-        
+
             return jsonify("Ubicación actualizada"), 200
-    
+
     return jsonify("Ubicación no encontrada"), 404
 
 
-#FORM
+# FORM
 
-#POST
+# POST
 
 @app.route("/form", methods=["POST"])
+@jwt_required()
 def create_form():
     form = Form()
     form.user_id = request.json.get("user_id")
@@ -548,13 +641,13 @@ def create_form():
     form.query43 = request.json.get("query43")
     form.query44 = request.json.get("query44")
 
-    
     db.session.add(form)
     db.session.commit()
 
     return jsonify("Formulario guardado"), 201
 
-#GET
+# GET
+
 
 @app.route("/form/list", methods=["GET"])
 def get_form():
@@ -564,18 +657,20 @@ def get_form():
         result.append(form.serialize())
     return jsonify(result)
 
-#PUT & DELETE
+
+# PUT & DELETE
 
 @app.route("/form/<int:id>", methods=["PUT", "DELETE"])
+@jwt_required()
 def update_form(id):
-    form =  Form.query.get(id)
+    form = Form.query.get(id)
     if form is not None:
         if request.method == "DELETE":
             db.session.delete(form)
             db.session.commit()
-            
+
             return jsonify("Publicación eliminada"), 204
-        else:    
+        else:
             form.user_id = request.json.get("user_id")
             form.query1 = request.json.get("query1")
             form.query2 = request.json.get("query2")
@@ -622,44 +717,16 @@ def update_form(id):
             form.query43 = request.json.get("query43")
             form.query44 = request.json.get("query44")
             
+            
+        
+
         
             db.session.commit()
-        
+
             return jsonify("Formulario actualizado"), 200
-    
+
     return jsonify("Formulario no encontrado"), 404
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
 
 if __name__ == "__main__":
     app.run(host="localhost", port="8080")
