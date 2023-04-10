@@ -24,11 +24,6 @@ jwt = JWTManager(app)
 bcrypt = Bcrypt(app)
 CORS(app)
 
-
-
-
-
-
 @app.route("/")
 def home():
     return "Hello world"
@@ -36,7 +31,6 @@ def home():
 # ROL
 
 # POST
-
 
 @app.route("/rols", methods=["POST"])
 def create_rol():
@@ -49,7 +43,6 @@ def create_rol():
     return "Usuario guardado", 201
 
 # GET
-
 
 @app.route("/rols/list", methods=["GET"])
 def get_rols():
@@ -305,6 +298,54 @@ def create_pet():
 
     print(pet)
     return jsonify("Mascota guardada"), 201
+
+
+@app.route('/uploads/<name>')
+def download_file(name):
+    return send_from_directory(app.config["UPLOAD"], name)
+
+
+@app.route('/pets/search' , methods=['POST'])
+def search_pets():
+    gender = request.json.get("gender")
+    size = request.json.get("size")
+    species = request.json.get("species")
+
+    pets_query = Pet.query
+    if gender:
+        pets_query = pets_query.filter_by(gender=gender)
+    if size:
+        pets_query = pets_query.filter_by(size=size)
+    if species:
+        pets_query = pets_query.filter_by(species=species)
+
+    pets = pets_query.all()
+    pets = list(map(lambda pet: pet.serialize(), pets))
+
+    return jsonify(pets), 200
+
+
+@app.route('/pet/<int:id>', methods=['GET'])
+def get_planet_id(id):
+    pet = Pet.query.get(id)
+    if pet is not None:
+        return jsonify(pet.serialize())
+    else:
+        return jsonify('No se encontró el objeto People con el ID especificado')
+
+
+# GET
+
+@app.route("/pets/list", methods=["GET"])
+def get_pets():
+    pets = Pet.query.all()
+    result = []
+    for pet in pets:
+        result.append(pet.serialize())
+    return jsonify(result)
+
+# PUT & DELETE
+
 @app.route("/pet/<int:id>", methods=["PUT", "DELETE"])
 def update_pet(id):
     pet = Pet.query.get(id)
@@ -349,56 +390,6 @@ def update_pet(id):
     
     return jsonify("Mascota no encontrada"), 404 
 
-@app.route('/uploads/<name>')
-def download_file(name):
-    return send_from_directory(app.config["UPLOAD"], name)
-
-
-
-
-@app.route('/pets/search' , methods=['POST'])
-def search_pets():
-    gender = request.json.get("gender")
-    size = request.json.get("size")
-    species = request.json.get("species")
-
-    pets_query = Pet.query
-    if gender:
-        pets_query = pets_query.filter_by(gender=gender)
-    if size:
-        pets_query = pets_query.filter_by(size=size)
-    if species:
-        pets_query = pets_query.filter_by(species=species)
-
-    pets = pets_query.all()
-    pets = list(map(lambda pet: pet.serialize(), pets))
-
-    return jsonify(pets), 200
-
-
-@app.route('/pet/<int:id>', methods=['GET'])
-def get_planet_id(id):
-    pet = Pet.query.get(id)
-    if pet is not None:
-        return jsonify(pet.serialize())
-    else:
-        return jsonify('No se encontró el objeto People con el ID especificado')
-
-
-# GET
-
-@app.route("/pets/list", methods=["GET"])
-def get_pets():
-    pets = Pet.query.all()
-    result = []
-    for pet in pets:
-        result.append(pet.serialize())
-    return jsonify(result)
-
-# PUT & DELETE
-
-
-
 
 # FAVORITES
 
@@ -430,17 +421,16 @@ def get_favorites():
 
 
 @app.route("/favorites/user/<int:user_id>", methods=["GET"])
+@jwt_required()
 def get_favorite_user(user_id):
     favorites = Favorites.query.filter_by(user_id=user_id).all()
+    pet_list = []
     pet_list = []
     for favorite in favorites:
         pet = Pet.query.get(favorite.pet_id)
         if pet is not None:
             pet_list.append(pet.serialize())
     return jsonify(pet_list)
-
-# PUT & DELETE
-
 
 @app.route("/favorites/<int:id>", methods=["PUT", "DELETE"])
 def update_favorites(id):
