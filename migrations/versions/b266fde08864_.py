@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: cf39ae3ac14c
+Revision ID: b266fde08864
 Revises: 
-Create Date: 2023-03-27 15:45:12.048099
+Create Date: 2023-04-04 17:47:53.265411
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'cf39ae3ac14c'
+revision = 'b266fde08864'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -33,7 +33,7 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=50), nullable=False),
     sa.Column('gender', sa.String(length=50), nullable=False),
-    sa.Column('age', sa.Integer(), nullable=False),
+    sa.Column('age', sa.String(length=50), nullable=False),
     sa.Column('description', sa.String(length=500), nullable=False),
     sa.Column('species', sa.String(length=50), nullable=False),
     sa.Column('size', sa.String(length=50), nullable=False),
@@ -47,6 +47,7 @@ def upgrade():
     op.create_table('post',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('title', sa.String(length=50), nullable=False),
+    sa.Column('date', sa.DateTime(), nullable=False),
     sa.Column('description', sa.String(length=500), nullable=False),
     sa.Column('rol_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['rol_id'], ['rol.id'], ),
@@ -88,8 +89,8 @@ def upgrade():
     sa.Column('query2', sa.String(length=500), nullable=False),
     sa.Column('query3', sa.String(length=500), nullable=False),
     sa.Column('query4', sa.String(length=500), nullable=False),
-    sa.Column('query5', sa.Boolean(), nullable=True),
-    sa.Column('query6', sa.Boolean(), nullable=True),
+    sa.Column('query5', sa.String(length=500), nullable=False),
+    sa.Column('query6', sa.String(length=500), nullable=False),
     sa.Column('query7', sa.String(length=500), nullable=False),
     sa.Column('query8', sa.String(length=500), nullable=False),
     sa.Column('query9', sa.String(length=500), nullable=False),
@@ -97,23 +98,23 @@ def upgrade():
     sa.Column('query11', sa.String(length=500), nullable=False),
     sa.Column('query12', sa.String(length=500), nullable=False),
     sa.Column('query13', sa.String(length=500), nullable=False),
-    sa.Column('query14', sa.Integer(), nullable=False),
-    sa.Column('query15', sa.Boolean(), nullable=True),
-    sa.Column('query16', sa.String(length=500), nullable=False),
-    sa.Column('query17', sa.Boolean(), nullable=True),
-    sa.Column('query18', sa.String(length=500), nullable=False),
-    sa.Column('query19', sa.Boolean(), nullable=True),
-    sa.Column('query20', sa.String(length=500), nullable=False),
+    sa.Column('query14', sa.String(length=500), nullable=False),
+    sa.Column('query15', sa.String(length=500), nullable=False),
+    sa.Column('query16', sa.Boolean(), nullable=True),
+    sa.Column('query17', sa.String(length=500), nullable=False),
+    sa.Column('query18', sa.Boolean(), nullable=True),
+    sa.Column('query19', sa.String(length=500), nullable=False),
+    sa.Column('query20', sa.Boolean(), nullable=True),
     sa.Column('query21', sa.Boolean(), nullable=True),
     sa.Column('query22', sa.Boolean(), nullable=True),
-    sa.Column('query23', sa.Boolean(), nullable=True),
+    sa.Column('query23', sa.String(length=500), nullable=False),
     sa.Column('query24', sa.String(length=500), nullable=False),
     sa.Column('query25', sa.String(length=500), nullable=False),
     sa.Column('query26', sa.Boolean(), nullable=True),
     sa.Column('query27', sa.Boolean(), nullable=True),
-    sa.Column('query28', sa.Boolean(), nullable=True),
+    sa.Column('query28', sa.String(length=500), nullable=False),
     sa.Column('query29', sa.String(length=500), nullable=False),
-    sa.Column('query30', sa.String(length=500), nullable=False),
+    sa.Column('query30', sa.Boolean(), nullable=True),
     sa.Column('query31', sa.String(length=500), nullable=False),
     sa.Column('query32', sa.String(length=500), nullable=False),
     sa.Column('query33', sa.String(length=500), nullable=False),
@@ -121,13 +122,13 @@ def upgrade():
     sa.Column('query35', sa.String(length=500), nullable=False),
     sa.Column('query36', sa.Boolean(), nullable=True),
     sa.Column('query37', sa.Boolean(), nullable=True),
-    sa.Column('query38', sa.String(length=500), nullable=False),
+    sa.Column('query38', sa.Boolean(), nullable=True),
     sa.Column('query39', sa.String(length=500), nullable=False),
     sa.Column('query40', sa.String(length=500), nullable=False),
     sa.Column('query41', sa.String(length=500), nullable=False),
-    sa.Column('query42', sa.Boolean(), nullable=True),
+    sa.Column('query42', sa.String(length=500), nullable=False),
     sa.Column('query43', sa.Boolean(), nullable=True),
-    sa.Column('query44', sa.String(length=500), nullable=False),
+    sa.Column('query44', sa.Boolean(), nullable=True),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
     )

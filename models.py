@@ -109,14 +109,18 @@ class Post(db.Model):
     __tablename__ = 'post'
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(50), nullable=False)
+    date = db.Column(db.DateTime, nullable=False)
     description = db.Column(db.String(500), nullable=False)
+    #imagePost = db.Column(db.LargeBinary, nullable=False)
     rol_id = db.Column(db.Integer, db.ForeignKey('rol.id'))
 
     def serialize(self):
         return {
             "id" : self.id,  
             "title" : self.title,
+            "date" : self.date,
             "description": self.description,
+           # "imagePost" : self.imagePost
             "rol_id": self.rol_id
             
         }
