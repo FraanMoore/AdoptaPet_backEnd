@@ -156,13 +156,19 @@ def update_user(id):
     user = User.query.get(id)    
     if user is not None:
         if request.method == "DELETE":
-            user_description = User_description.query.filter_by(
-                user_id=id).first()
+            user_description = User_description.query.filter_by(user_id=id).first()
             if user_description is not None:
                 db.session.delete(user_description)
+            form = Form.query.filter_by(user_id=id).first()
+            if form is not None:
+                db.session.delete(form)
+            favorites = Favorites.query.filter_by(user_id=id).all()
+            for favorite in favorites:
+                db.session.delete(favorite)
             db.session.delete(user)
             db.session.commit()
-            return jsonify("Usuario y descripción eliminada"), 204
+            return jsonify("Usuario, descripción, formulario y favoritas eliminados"), 204
+
         else:
             user.name = request.json.get("name")
             user.last_name = request.json.get("last_name")
@@ -174,6 +180,7 @@ def update_user(id):
             db.session.commit()
             return jsonify("Usuario actualizado"), 200
     return jsonify("Usuario no encontrado"), 404
+
 
 
 # USER_DESCRIPTION
