@@ -6,6 +6,8 @@ from models import db , Rol, User, User_description, Pet, Favorites, Post, Adres
 from flask_migrate import Migrate
 from flask_bcrypt import Bcrypt, generate_password_hash, check_password_hash
 from flask_jwt_extended import JWTManager, jwt_required, create_access_token, get_jwt_identity
+from flask_cors  import CORS
+from datetime import datetime
 from flask_cors import CORS
 
 
@@ -430,10 +432,12 @@ def get_favorites():
 @app.route("/favorites/user/<int:user_id>", methods=["GET"])
 def get_favorite_user(user_id):
     favorites = Favorites.query.filter_by(user_id=user_id).all()
-    result = []
+    pet_list = []
     for favorite in favorites:
-        result.append(favorite.serialize())
-    return jsonify(result)
+        pet = Pet.query.get(favorite.pet_id)
+        if pet is not None:
+            pet_list.append(pet.serialize())
+    return jsonify(pet_list)
 
 # PUT & DELETE
 
@@ -472,13 +476,17 @@ def update_favorites(id):
 def create_post():
     posts = Post()
     posts.title = request.json.get("title")
+    posts.date = datetime.strptime(request.json.get("date") +" 00:00:00","%Y-%m-%d %H:%M:%S")
     posts.description = request.json.get("description")
+    #posts.imagepost = request.json.get("image")
     posts.rol_id = request.json.get("rol_id")
 
     db.session.add(posts)
     db.session.commit()
 
     return jsonify("Publicación guardada"), 201
+    
+#GET    
 
 # GET
 
