@@ -516,7 +516,7 @@ def update_posts(id):
 
             db.session.commit()
 
-            return jsonify("Publicación actualizada"), 200
+            return jsonify("Publicación actualizada!"), 200
 
     return jsonify("Publicación no encontrada"), 404
 
