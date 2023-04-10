@@ -305,6 +305,7 @@ def create_pet():
 
     print(pet)
     return jsonify("Mascota guardada"), 201
+
 @app.route("/pet/<int:id>", methods=["PUT", "DELETE"])
 def update_pet(id):
     pet = Pet.query.get(id)
