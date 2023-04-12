@@ -403,6 +403,7 @@ def update_pet(id):
 # POST
 
 @app.route("/favorites", methods=["POST"])
+@jwt_required()
 def create_favorite():
     favorites = Favorites()
     favorites.pet_id = request.json.get("pet_id")
