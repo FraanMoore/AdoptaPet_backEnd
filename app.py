@@ -403,14 +403,23 @@ def update_pet(id):
 # POST
 
 @app.route("/favorites", methods=["POST"])
+@jwt_required()
 def create_favorite():
+    pet_id = request.json.get("pet_id")
+    user_id = request.json.get("user_id")
+    
+    # Check if the user already has a pet with the same id registered
+    existing_favorite = Favorites.query.filter_by(pet_id=pet_id, user_id=user_id).first()
+    if existing_favorite:
+        return jsonify("El usuario ya tiene una mascota con el mismo id registrada"), 400
+    
+    # If the user does not have a pet with the same id registered, create a new favorite
     favorites = Favorites()
-    favorites.pet_id = request.json.get("pet_id")
-    favorites.user_id = request.json.get("user_id")
-
+    favorites.pet_id = pet_id
+    favorites.user_id = user_id
     db.session.add(favorites)
     db.session.commit()
-
+    
     return jsonify("Favorito guardado"), 201
 
 # GET
@@ -432,36 +441,25 @@ def get_favorites():
 def get_favorite_user(user_id):
     favorites = Favorites.query.filter_by(user_id=user_id).all()
     pet_list = []
-    pet_list = []
     for favorite in favorites:
         pet = Pet.query.get(favorite.pet_id)
         if pet is not None:
             pet_list.append(pet.serialize())
     return jsonify(pet_list)
 
-@app.route("/favorites/<int:id>", methods=["PUT", "DELETE"])
-def update_favorites(id):
-    favorite = Favorites.query.get(id)
+@app.route("/favorites/<int:user_id>/<int:pet_id>", methods=["PUT", "DELETE"])
+def update_favorites(user_id, pet_id):
+    favorite = Favorites.query.filter_by(user_id=user_id, pet_id=pet_id).first()
     if favorite is not None:
         if request.method == "DELETE":
             db.session.delete(favorite)
             db.session.commit()
-
             return jsonify("Favorito eliminado"), 204
         else:
-            if "pet_id" in request.json:
-                favorite.pet_id = request.json.get("pet_id")
-            if "user_id" in request.json:
-                favorite.user_id = request.json.get("user_id")
-            
-            
-        
-
-        
+            favorite.pet_id = request.json.get("pet_id")
+            favorite.user_id = request.json.get("user_id")
             db.session.commit()
-
             return jsonify("Favoritos actualizados"), 200
-
     return jsonify("Favoritos no encontrados"), 404
 
 
