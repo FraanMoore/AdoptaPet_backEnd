@@ -156,13 +156,19 @@ def update_user(id):
     user = User.query.get(id)    
     if user is not None:
         if request.method == "DELETE":
-            user_description = User_description.query.filter_by(
-                user_id=id).first()
+            user_description = User_description.query.filter_by(user_id=id).first()
             if user_description is not None:
                 db.session.delete(user_description)
+            form = Form.query.filter_by(user_id=id).first()
+            if form is not None:
+                db.session.delete(form)
+            favorites = Favorites.query.filter_by(user_id=id).all()
+            for favorite in favorites:
+                db.session.delete(favorite)
             db.session.delete(user)
             db.session.commit()
-            return jsonify("Usuario y descripción eliminada"), 204
+            return jsonify("Usuario, descripción, formulario y favoritas eliminados"), 204
+
         else:
             user.name = request.json.get("name")
             user.last_name = request.json.get("last_name")
@@ -174,6 +180,7 @@ def update_user(id):
             db.session.commit()
             return jsonify("Usuario actualizado"), 200
     return jsonify("Usuario no encontrado"), 404
+
 
 
 # USER_DESCRIPTION
@@ -396,14 +403,23 @@ def update_pet(id):
 # POST
 
 @app.route("/favorites", methods=["POST"])
+@jwt_required()
 def create_favorite():
+    pet_id = request.json.get("pet_id")
+    user_id = request.json.get("user_id")
+    
+    # Check if the user already has a pet with the same id registered
+    existing_favorite = Favorites.query.filter_by(pet_id=pet_id, user_id=user_id).first()
+    if existing_favorite:
+        return jsonify("El usuario ya tiene una mascota con el mismo id registrada"), 400
+    
+    # If the user does not have a pet with the same id registered, create a new favorite
     favorites = Favorites()
-    favorites.pet_id = request.json.get("pet_id")
-    favorites.user_id = request.json.get("user_id")
-
+    favorites.pet_id = pet_id
+    favorites.user_id = user_id
     db.session.add(favorites)
     db.session.commit()
-
+    
     return jsonify("Favorito guardado"), 201
 
 # GET
@@ -425,36 +441,25 @@ def get_favorites():
 def get_favorite_user(user_id):
     favorites = Favorites.query.filter_by(user_id=user_id).all()
     pet_list = []
-    pet_list = []
     for favorite in favorites:
         pet = Pet.query.get(favorite.pet_id)
         if pet is not None:
             pet_list.append(pet.serialize())
     return jsonify(pet_list)
 
-@app.route("/favorites/<int:id>", methods=["PUT", "DELETE"])
-def update_favorites(id):
-    favorite = Favorites.query.get(id)
+@app.route("/favorites/<int:user_id>/<int:pet_id>", methods=["PUT", "DELETE"])
+def update_favorites(user_id, pet_id):
+    favorite = Favorites.query.filter_by(user_id=user_id, pet_id=pet_id).first()
     if favorite is not None:
         if request.method == "DELETE":
             db.session.delete(favorite)
             db.session.commit()
-
             return jsonify("Favorito eliminado"), 204
         else:
-            if "pet_id" in request.json:
-                favorite.pet_id = request.json.get("pet_id")
-            if "user_id" in request.json:
-                favorite.user_id = request.json.get("user_id")
-            
-            
-        
-
-        
+            favorite.pet_id = request.json.get("pet_id")
+            favorite.user_id = request.json.get("user_id")
             db.session.commit()
-
             return jsonify("Favoritos actualizados"), 200
-
     return jsonify("Favoritos no encontrados"), 404
 
 
