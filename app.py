@@ -24,11 +24,6 @@ jwt = JWTManager(app)
 bcrypt = Bcrypt(app)
 CORS(app)
 
-
-
-
-
-
 @app.route("/")
 def home():
     return "Hello world"
@@ -36,7 +31,6 @@ def home():
 # ROL
 
 # POST
-
 
 @app.route("/rols", methods=["POST"])
 def create_rol():
@@ -49,7 +43,6 @@ def create_rol():
     return "Usuario guardado", 201
 
 # GET
-
 
 @app.route("/rols/list", methods=["GET"])
 def get_rols():
@@ -163,13 +156,19 @@ def update_user(id):
     user = User.query.get(id)    
     if user is not None:
         if request.method == "DELETE":
-            user_description = User_description.query.filter_by(
-                user_id=id).first()
+            user_description = User_description.query.filter_by(user_id=id).first()
             if user_description is not None:
                 db.session.delete(user_description)
+            form = Form.query.filter_by(user_id=id).first()
+            if form is not None:
+                db.session.delete(form)
+            favorites = Favorites.query.filter_by(user_id=id).all()
+            for favorite in favorites:
+                db.session.delete(favorite)
             db.session.delete(user)
             db.session.commit()
-            return jsonify("Usuario y descripción eliminada"), 204
+            return jsonify("Usuario, descripción, formulario y favoritas eliminados"), 204
+
         else:
             user.name = request.json.get("name")
             user.last_name = request.json.get("last_name")
@@ -181,6 +180,7 @@ def update_user(id):
             db.session.commit()
             return jsonify("Usuario actualizado"), 200
     return jsonify("Usuario no encontrado"), 404
+
 
 
 # USER_DESCRIPTION
@@ -305,6 +305,54 @@ def create_pet():
 
     print(pet)
     return jsonify("Mascota guardada"), 201
+
+
+@app.route('/uploads/<name>')
+def download_file(name):
+    return send_from_directory(app.config["UPLOAD"], name)
+
+
+@app.route('/pets/search' , methods=['POST'])
+def search_pets():
+    gender = request.json.get("gender")
+    size = request.json.get("size")
+    species = request.json.get("species")
+
+    pets_query = Pet.query
+    if gender:
+        pets_query = pets_query.filter_by(gender=gender)
+    if size:
+        pets_query = pets_query.filter_by(size=size)
+    if species:
+        pets_query = pets_query.filter_by(species=species)
+
+    pets = pets_query.all()
+    pets = list(map(lambda pet: pet.serialize(), pets))
+
+    return jsonify(pets), 200
+
+
+@app.route('/pet/<int:id>', methods=['GET'])
+def get_planet_id(id):
+    pet = Pet.query.get(id)
+    if pet is not None:
+        return jsonify(pet.serialize())
+    else:
+        return jsonify('No se encontró el objeto People con el ID especificado')
+
+
+# GET
+
+@app.route("/pets/list", methods=["GET"])
+def get_pets():
+    pets = Pet.query.all()
+    result = []
+    for pet in pets:
+        result.append(pet.serialize())
+    return jsonify(result)
+
+# PUT & DELETE
+
 @app.route("/pet/<int:id>", methods=["PUT", "DELETE"])
 def update_pet(id):
     pet = Pet.query.get(id)
@@ -349,70 +397,29 @@ def update_pet(id):
     
     return jsonify("Mascota no encontrada"), 404 
 
-@app.route('/uploads/<name>')
-def download_file(name):
-    return send_from_directory(app.config["UPLOAD"], name)
-
-
-
-
-@app.route('/pets/search' , methods=['POST'])
-def search_pets():
-    gender = request.json.get("gender")
-    size = request.json.get("size")
-    species = request.json.get("species")
-
-    pets_query = Pet.query
-    if gender:
-        pets_query = pets_query.filter_by(gender=gender)
-    if size:
-        pets_query = pets_query.filter_by(size=size)
-    if species:
-        pets_query = pets_query.filter_by(species=species)
-
-    pets = pets_query.all()
-    pets = list(map(lambda pet: pet.serialize(), pets))
-
-    return jsonify(pets), 200
-
-
-@app.route('/pet/<int:id>', methods=['GET'])
-def get_planet_id(id):
-    pet = Pet.query.get(id)
-    if pet is not None:
-        return jsonify(pet.serialize())
-    else:
-        return jsonify('No se encontró el objeto People con el ID especificado')
-
-
-# GET
-
-@app.route("/pets/list", methods=["GET"])
-def get_pets():
-    pets = Pet.query.all()
-    result = []
-    for pet in pets:
-        result.append(pet.serialize())
-    return jsonify(result)
-
-# PUT & DELETE
-
-
-
 
 # FAVORITES
 
 # POST
 
 @app.route("/favorites", methods=["POST"])
+@jwt_required()
 def create_favorite():
+    pet_id = request.json.get("pet_id")
+    user_id = request.json.get("user_id")
+    
+    # Check if the user already has a pet with the same id registered
+    existing_favorite = Favorites.query.filter_by(pet_id=pet_id, user_id=user_id).first()
+    if existing_favorite:
+        return jsonify("El usuario ya tiene una mascota con el mismo id registrada"), 400
+    
+    # If the user does not have a pet with the same id registered, create a new favorite
     favorites = Favorites()
-    favorites.pet_id = request.json.get("pet_id")
-    favorites.user_id = request.json.get("user_id")
-
+    favorites.pet_id = pet_id
+    favorites.user_id = user_id
     db.session.add(favorites)
     db.session.commit()
-
+    
     return jsonify("Favorito guardado"), 201
 
 # GET
@@ -430,6 +437,7 @@ def get_favorites():
 
 
 @app.route("/favorites/user/<int:user_id>", methods=["GET"])
+@jwt_required()
 def get_favorite_user(user_id):
     favorites = Favorites.query.filter_by(user_id=user_id).all()
     pet_list = []
@@ -439,32 +447,19 @@ def get_favorite_user(user_id):
             pet_list.append(pet.serialize())
     return jsonify(pet_list)
 
-# PUT & DELETE
-
-
-@app.route("/favorites/<int:id>", methods=["PUT", "DELETE"])
-def update_favorites(id):
-    favorite = Favorites.query.get(id)
+@app.route("/favorites/<int:user_id>/<int:pet_id>", methods=["PUT", "DELETE"])
+def update_favorites(user_id, pet_id):
+    favorite = Favorites.query.filter_by(user_id=user_id, pet_id=pet_id).first()
     if favorite is not None:
         if request.method == "DELETE":
             db.session.delete(favorite)
             db.session.commit()
-
             return jsonify("Favorito eliminado"), 204
         else:
-            if "pet_id" in request.json:
-                favorite.pet_id = request.json.get("pet_id")
-            if "user_id" in request.json:
-                favorite.user_id = request.json.get("user_id")
-            
-            
-        
-
-        
+            favorite.pet_id = request.json.get("pet_id")
+            favorite.user_id = request.json.get("user_id")
             db.session.commit()
-
             return jsonify("Favoritos actualizados"), 200
-
     return jsonify("Favoritos no encontrados"), 404
 
 
