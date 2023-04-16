@@ -470,23 +470,25 @@ def update_favorites(user_id, pet_id):
 
 @app.route("/posts", methods=["POST"])
 def create_post():
-    print(request.form)
-    print(request.files)
+    #print(request.form)
+    #print(request.files)
     posts = Post()
     locale.setlocale(locale.LC_TIME, 'es_ES')
     posts.title = request.json.get("title")
     posts.date = datetime.strptime(request.json.get("date") +" 00:00:00","%Y-%m-%d %H:%M:%S")
     posts.description = request.json.get("description")
-    file = request.files['file']
-    filename = secure_filename(file.filename)
-    file.save(os.path.join(app.config['UPLOAD'], filename))
-    posts.imagePost = filename
+    #file = request.files['file']
+    #filename = secure_filename(file.filename)
+    #file.save(os.path.join(app.config['UPLOAD'], filename))
+    #posts.imagePost = filename
     posts.rol_id = request.json.get("rol_id")
 
     db.session.add(posts)
     db.session.commit()
 
+    #print(posts)
     return jsonify("Post publicado"), 201
+
     
 #GET    
 

@@ -111,7 +111,7 @@ class Post(db.Model):
     title = db.Column(db.String(50), nullable=False)
     date = db.Column(db.DateTime, nullable=False)
     description = db.Column(db.String(500), nullable=False)
-    imagePost = db.Column(db.String(100), default = '')
+   #imagePost = db.Column(db.String(100), default = '')
     rol_id = db.Column(db.Integer, db.ForeignKey('rol.id'))
 
     def serialize(self):
@@ -120,7 +120,7 @@ class Post(db.Model):
             "title" : self.title,
             "date" : self.date,
             "description": self.description,
-            "imagePost" : self.imagePost,
+            #"imagePost" : self.imagePost,
             "rol_id": self.rol_id
             
         }
