@@ -1,4 +1,5 @@
 import os
+import locale
 
 from werkzeug.utils import secure_filename
 from flask import Flask, request, jsonify, send_from_directory
@@ -469,17 +470,23 @@ def update_favorites(user_id, pet_id):
 
 @app.route("/posts", methods=["POST"])
 def create_post():
+    print(request.form)
+    print(request.files)
     posts = Post()
+    locale.setlocale(locale.LC_TIME, 'es_ES')
     posts.title = request.json.get("title")
     posts.date = datetime.strptime(request.json.get("date") +" 00:00:00","%Y-%m-%d %H:%M:%S")
     posts.description = request.json.get("description")
-    #posts.imagepost = request.json.get("image")
+    file = request.files['file']
+    filename = secure_filename(file.filename)
+    file.save(os.path.join(app.config['UPLOAD'], filename))
+    posts.imagePost = filename
     posts.rol_id = request.json.get("rol_id")
 
     db.session.add(posts)
     db.session.commit()
 
-    return jsonify("Publicación guardada"), 201
+    return jsonify("Post publicado"), 201
     
 #GET    
 
@@ -513,6 +520,12 @@ def update_posts(id):
             description = request.json.get("description")
             if description is not None:
                 post.description = description
+            date = request.json.get("date")
+            if date is not None:
+                post.date = date
+            imagePost = request.json.get(imagePost)
+            if imagePost is not None:
+                post.imagePost = imagePost
             rol_id = request.json.get("rol_id")
             if rol_id is not None:
                 post.rol_id = rol_id
