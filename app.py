@@ -289,7 +289,7 @@ def create_pet():
     file.save(os.path.join(app.config['UPLOAD'], filename))
     pet.img = filename
     pet.medical_history = request.form["medical_history"]
-    pet.is_adopted = bool(request.form["is_adopted"])
+    pet.is_adopted = request.form["is_adopted"]
     pet.adress_id = request.form["adress_id"]
     pet.rol_id = request.form["rol_id"]
    
@@ -375,15 +375,15 @@ def update_pet(id):
                 pet.img = filename
             if 'medical_history' in request.form:
                 pet.medical_history = request.form["medical_history"]
-            if 'is_adopted' in request.form:
-                pet.is_adopted = bool(request.form["is_adopted"])
+            if 'is_adopted' in request.form: 
+                pet.is_adopted = request.form['is_adopted']
             if 'adress_id' in request.form:
                 pet.adress_id = request.form["adress_id"]
             if 'rol_id' in request.form:
                 pet.rol_id = request.form["rol_id"]
             
             print(request.form)
-            
+            print(request.form['is_adopted'])
             db.session.commit()
         
             return jsonify("Mascota actualizada"), 200

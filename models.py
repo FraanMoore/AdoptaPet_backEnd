@@ -72,7 +72,7 @@ class Pet(db.Model):
     size = db.Column(db.String(50), nullable=False)
     img = db.Column(db.String(100), default = '')
     medical_history = db.Column(db.String(500), nullable=False)
-    is_adopted = db.Column(db.Boolean, unique=False, default=False)
+    is_adopted = db.Column(db.String(2), unique=False, default='no')
     adress_id = db.Column(db.String(500), nullable=False)
     rol_id = db.Column(db.Integer, db.ForeignKey('rol.id'))
     
